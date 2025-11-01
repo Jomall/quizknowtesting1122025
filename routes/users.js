@@ -255,6 +255,192 @@ router.get('/global-stats', async (req, res) => {
   }
 });
 
+// Get all user data (aggregated view for dashboard)
+router.get('/my-data', auth, checkApproved, checkSuspended, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    const baseData = {
+      user: {
+        id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        role: req.user.role,
+        profile: req.user.profile,
+        isApproved: req.user.isApproved,
+        isSuspended: req.user.isSuspended,
+        totalStudyTime: req.user.totalStudyTime,
+        lastLoginTime: req.user.lastLoginTime,
+        createdAt: req.user.createdAt
+      }
+    };
+
+    if (userRole === 'student') {
+      // Student data aggregation
+      const QuizSubmission = require('../models/QuizSubmission');
+      const QuizSession = require('../models/QuizSession');
+      const ContentView = require('../models/ContentView');
+      const Connection = require('../models/Connection');
+
+      // Quiz submissions
+      const submissions = await QuizSubmission.find({ student: userId })
+        .populate('quiz', 'title description instructor category difficulty')
+        .populate('quiz.instructor', 'username profile.firstName profile.lastName')
+        .sort({ submittedAt: -1 });
+
+      // Quiz sessions
+      const sessions = await QuizSession.find({ student: userId })
+        .populate('quiz', 'title instructor')
+        .populate('quiz.instructor', 'username profile.firstName profile.lastName')
+        .sort({ startTime: -1 });
+
+      // Content views/progress
+      const contentViews = await ContentView.find({ student: userId })
+        .populate('content', 'title type description instructor')
+        .populate('content.instructor', 'username profile.firstName profile.lastName')
+        .sort({ viewedAt: -1 });
+
+      // Connections
+      const connections = await Connection.find({
+        $or: [{ sender: userId }, { receiver: userId }]
+      })
+        .populate('sender', 'username profile.firstName profile.lastName role')
+        .populate('receiver', 'username profile.firstName profile.lastName role')
+        .sort({ updatedAt: -1 });
+
+      // Quiz stats
+      const totalQuizzes = await QuizSubmission.distinct('quiz', { student: userId }).then(quizzes => quizzes.length);
+      const completedQuizzes = submissions.filter(s => s.isCompleted).length;
+      const scores = submissions.filter(s => s.score !== undefined).map(s => s.score);
+      const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+      const totalTime = submissions.reduce((acc, s) => acc + (s.timeSpent || 0), 0);
+
+      baseData.studentData = {
+        quizSubmissions: submissions,
+        quizSessions: sessions,
+        contentViews: contentViews,
+        connections: connections,
+        stats: {
+          totalQuizzes,
+          completedQuizzes,
+          averageScore,
+          totalTime
+        }
+      };
+
+    } else if (userRole === 'instructor') {
+      // Instructor data aggregation
+      const Quiz = require('../models/Quiz');
+      const QuizSubmission = require('../models/QuizSubmission');
+      const Content = require('../models/Content');
+      const ContentView = require('../models/ContentView');
+      const Connection = require('../models/Connection');
+
+      // Created quizzes
+      const quizzes = await Quiz.find({ instructor: userId })
+        .populate('students.student', 'username profile.firstName profile.lastName')
+        .sort({ createdAt: -1 });
+
+      // Quiz submissions from students
+      const quizIds = quizzes.map(q => q._id);
+      const quizSubmissions = await QuizSubmission.find({ quiz: { $in: quizIds } })
+        .populate('quiz', 'title')
+        .populate('student', 'username profile.firstName profile.lastName')
+        .sort({ submittedAt: -1 });
+
+      // Created content
+      const content = await Content.find({ instructor: userId })
+        .populate('allowedStudents', 'username profile.firstName profile.lastName')
+        .sort({ createdAt: -1 });
+
+      // Content views from students
+      const contentIds = content.map(c => c._id);
+      const contentViews = await ContentView.find({ content: { $in: contentIds } })
+        .populate('content', 'title type')
+        .populate('student', 'username profile.firstName profile.lastName')
+        .sort({ viewedAt: -1 });
+
+      // Connections
+      const connections = await Connection.find({
+        $or: [{ sender: userId }, { receiver: userId }]
+      })
+        .populate('sender', 'username profile.firstName profile.lastName role')
+        .populate('receiver', 'username profile.firstName profile.lastName role')
+        .sort({ updatedAt: -1 });
+
+      // Instructor stats
+      const totalQuizzes = quizzes.length;
+      const totalStudents = await Connection.countDocuments({
+        $or: [
+          { sender: userId, status: 'accepted' },
+          { receiver: userId, status: 'accepted' }
+        ]
+      });
+      const averageScore = quizSubmissions.length > 0 ?
+        Math.round(quizSubmissions.reduce((sum, s) => sum + (s.percentage || 0), 0) / quizSubmissions.length) : 0;
+      const completionRate = quizIds.length > 0 ?
+        Math.round((quizSubmissions.length / quizIds.length) * 100) : 0;
+
+      baseData.instructorData = {
+        quizzes: quizzes,
+        quizSubmissions: quizSubmissions,
+        content: content,
+        contentViews: contentViews,
+        connections: connections,
+        stats: {
+          totalQuizzes,
+          totalStudents,
+          averageScore,
+          completionRate
+        }
+      };
+
+    } else if (userRole === 'admin') {
+      // Admin data aggregation
+      const Quiz = require('../models/Quiz');
+      const Content = require('../models/Content');
+      const QuizSubmission = require('../models/QuizSubmission');
+
+      // All users
+      const users = await User.find().select('-password').sort({ createdAt: -1 });
+
+      // All quizzes
+      const quizzes = await Quiz.find()
+        .populate('instructor', 'username profile.firstName profile.lastName')
+        .sort({ createdAt: -1 });
+
+      // All content
+      const content = await Content.find()
+        .populate('instructor', 'username profile.firstName profile.lastName')
+        .sort({ createdAt: -1 });
+
+      // System stats
+      const activeUsers = await User.countDocuments({ isSuspended: false });
+      const totalQuizzes = await Quiz.countDocuments();
+      const totalContent = await Content.countDocuments();
+      const totalSubmissions = await QuizSubmission.countDocuments();
+
+      baseData.adminData = {
+        users: users,
+        quizzes: quizzes,
+        content: content,
+        stats: {
+          activeUsers,
+          totalQuizzes,
+          totalContent,
+          totalSubmissions
+        }
+      };
+    }
+
+    res.json(baseData);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get user by ID
 router.get('/:id', async (req, res) => {
   try {
