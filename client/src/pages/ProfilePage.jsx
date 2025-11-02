@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   CardContent,
   List,
   ListItem,
-  ListItemText,
   Avatar,
   Chip,
   Divider,
@@ -33,7 +32,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getUserQuizSessions, getUserQuizzes } = useQuiz();
-  
+
   const [activeTab, setActiveTab] = useState(0);
   const [sessions, setSessions] = useState([]);
   const [createdQuizzes, setCreatedQuizzes] = useState([]);
@@ -45,22 +44,18 @@ const ProfilePage = () => {
     bestCategory: '',
   });
 
-  useEffect(() => {
-    loadProfileData();
-  }, [loadProfileData]);
-
-  const loadProfileData = async () => {
+  const loadProfileData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [sessionsData, quizzesData] = await Promise.all([
         getUserQuizSessions(),
         getUserQuizzes(),
       ]);
-      
+
       setSessions(sessionsData);
       setCreatedQuizzes(quizzesData);
-      
+
       // Calculate statistics
       calculateStats(sessionsData);
     } catch (error) {
@@ -68,7 +63,11 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getUserQuizSessions, getUserQuizzes]);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
 
   const calculateStats = (sessions) => {
     if (sessions.length === 0) return;

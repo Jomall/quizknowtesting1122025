@@ -17,7 +17,6 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({

@@ -57,8 +57,7 @@ const ManageAssignmentsPage = () => {
   const [assigning, setAssigning] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  const navigate = useNavigate();
-  const { user } = useAuth();
+
 
   useEffect(() => {
     loadData();

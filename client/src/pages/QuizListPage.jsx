@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -52,7 +52,7 @@ const QuizListPage = () => {
     loadQuizzes();
   }, [filters, pagination.page, loadQuizzes]);
 
-  const loadQuizzes = async () => {
+  const loadQuizzes = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getAllQuizzes({
@@ -71,7 +71,7 @@ const QuizListPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAllQuizzes, filters, pagination.page, pagination.limit]);
 
   const handleFilterChange = (filterName, value) => {
     setFilters({

@@ -7,14 +7,11 @@ import {
   Paper,
   Grid,
   Button,
-  Card,
-  CardContent,
   Chip,
   Divider,
   Alert,
   List,
   ListItem,
-  ListItemText,
   ListItemIcon,
 } from '@mui/material';
 import {
@@ -23,7 +20,6 @@ import {
   ArrowBack as BackIcon,
   Print as PrintIcon,
   AccessTime as TimeIcon,
-  Score as ScoreIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
@@ -70,17 +66,7 @@ const QuizReviewPage = () => {
     }
   };
 
-  const getAnswerStatus = (questionId) => {
-    const answer = session?.answers.find(a => a.questionId === questionId);
-    if (!answer) return 'not-answered';
 
-    return answer.isCorrect ? 'correct' : 'incorrect';
-  };
-
-  const getUserAnswer = (questionId) => {
-    const answer = session?.answers.find(a => a.questionId === questionId);
-    return answer?.answer || null;
-  };
 
   const getAnswerText = (question, answer) => {
     if (!answer || answer === null || answer === undefined) {
@@ -256,8 +242,7 @@ const QuizReviewPage = () => {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ScoreIcon color="primary" />
-                  <Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                     Passing Score: {passingScore}%
                   </Typography>
                 </Box>

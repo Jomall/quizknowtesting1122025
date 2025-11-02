@@ -19,12 +19,10 @@ import {
   CheckCircle as CheckIcon,
   Cancel as WrongIcon,
   AccessTime as TimeIcon,
-  Score as ScoreIcon,
   Print as PrintIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
-import QuizResults from '../components/quiz/QuizResults';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { printQuizResults } from '../utils/printResults';
 
@@ -32,7 +30,7 @@ const QuizResultsPage = () => {
   const { quizId, sessionId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { getSubmittedQuizzes, getQuizResults, startQuiz, fetchQuiz } = useQuiz();
+  const { getQuizResults, startQuiz } = useQuiz();
 
   const [session, setSession] = useState(null);
   const [quiz, setQuiz] = useState(null);
@@ -175,8 +173,7 @@ const QuizResultsPage = () => {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ScoreIcon color="primary" />
-                  <Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                     Passing Score: {passingScore}%
                   </Typography>
                 </Box>

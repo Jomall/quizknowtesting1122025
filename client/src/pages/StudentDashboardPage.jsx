@@ -79,7 +79,7 @@ const StudentDashboardPage = () => {
       clearInterval(interval);
       window.removeEventListener('quizSubmitted', handleQuizSubmitted);
     };
-  }, [location, getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes, loadDashboardData]);
+  }, [location]);
 
   const fetchReceivedContent = async () => {
     try {
