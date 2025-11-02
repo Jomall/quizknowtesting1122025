@@ -37,35 +37,35 @@ const QuizResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadResults = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      // Fetch quiz results (sessionId can be null, backend will find latest)
-      const results = await getQuizResults(quizId, sessionId);
-      setSession(results.session);
-      setQuiz(results.quiz);
-    } catch (error) {
-      console.error('Error loading results:', error);
-      if (error.response?.status === 401) {
-        setError('Authentication failed. Please log in again.');
-      } else if (error.response?.status === 403) {
-        setError('You do not have permission to view these quiz results.');
-      } else if (error.response?.status === 404) {
-        setError('Quiz results not found.');
-      } else if (error.response?.status === 500) {
-        setError('Server error occurred while loading quiz results. Please try again later.');
-      } else {
-        setError(error.message || 'Failed to load quiz results. Please check your connection and try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [quizId, sessionId, getQuizResults]);
-
   useEffect(() => {
+    const loadResults = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch quiz results (sessionId can be null, backend will find latest)
+        const results = await getQuizResults(quizId, sessionId);
+        setSession(results.session);
+        setQuiz(results.quiz);
+      } catch (error) {
+        console.error('Error loading results:', error);
+        if (error.response?.status === 401) {
+          setError('Authentication failed. Please log in again.');
+        } else if (error.response?.status === 403) {
+          setError('You do not have permission to view these quiz results.');
+        } else if (error.response?.status === 404) {
+          setError('Quiz results not found.');
+        } else if (error.response?.status === 500) {
+          setError('Server error occurred while loading quiz results. Please try again later.');
+        } else {
+          setError(error.message || 'Failed to load quiz results. Please check your connection and try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadResults();
-  }, [loadResults]);
+  }, [quizId, sessionId, getQuizResults]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'success';

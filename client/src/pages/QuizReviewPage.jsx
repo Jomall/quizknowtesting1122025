@@ -38,25 +38,25 @@ const QuizReviewPage = () => {
   const [error, setError] = useState(null);
   const [studyTime, setStudyTime] = useState(0);
 
-  const loadReviewData = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const results = await getQuizResults(quizId, sessionId);
-
-      setSession(results.session);
-      setQuiz(results.quiz);
-    } catch (error) {
-      console.error('Error loading review data:', error);
-      setError(error.message || 'Failed to load quiz review');
-    } finally {
-      setLoading(false);
-    }
-  }, [quizId, sessionId, getQuizResults]);
-
   useEffect(() => {
+    const loadReviewData = async () => {
+      try {
+        setLoading(true);
+
+        const results = await getQuizResults(quizId, sessionId);
+
+        setSession(results.session);
+        setQuiz(results.quiz);
+      } catch (error) {
+        console.error('Error loading review data:', error);
+        setError(error.message || 'Failed to load quiz review');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadReviewData();
-  }, [loadReviewData]);
+  }, [quizId, sessionId, getQuizResults]);
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -83,31 +83,31 @@ const StudentDashboardPage = () => {
     }
   };
 
-  const loadDashboardData = useCallback(async () => {
-    try {
-      const [quizzes, statsData, available, pending, submitted, content, sentReqs] = await Promise.all([
-        getUserQuizzes(),
-        getQuizStats(),
-        getAvailableQuizzes(),
-        getPendingQuizzes(),
-        getSubmittedQuizzes(),
-        fetchReceivedContent(),
-        fetchSentRequests(),
-      ]);
-      setRecentQuizzes(quizzes);
-      setStats(statsData);
-      setAvailableQuizzes(available);
-      setPendingQuizzes(pending);
-      setSubmittedQuizzes(submitted);
-      setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
-      setReceivedContent(content);
-      setSentRequests(sentReqs);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    }
-  }, [getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes]);
-
   useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const [quizzes, statsData, available, pending, submitted, content, sentReqs] = await Promise.all([
+          getUserQuizzes(),
+          getQuizStats(),
+          getAvailableQuizzes(),
+          getPendingQuizzes(),
+          getSubmittedQuizzes(),
+          fetchReceivedContent(),
+          fetchSentRequests(),
+        ]);
+        setRecentQuizzes(quizzes);
+        setStats(statsData);
+        setAvailableQuizzes(available);
+        setPendingQuizzes(pending);
+        setSubmittedQuizzes(submitted);
+        setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
+        setReceivedContent(content);
+        setSentRequests(sentReqs);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      }
+    };
+
     loadDashboardData();
 
     // Set up polling to refresh dashboard data every 30 seconds
@@ -126,7 +126,7 @@ const StudentDashboardPage = () => {
       clearInterval(interval);
       window.removeEventListener('quizSubmitted', handleQuizSubmitted);
     };
-  }, [location, loadDashboardData]);
+  }, [location, getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes]);
 
   const handleTakeQuiz = (quizId) => {
     navigate(`/quiz/${quizId}`);
