@@ -106,50 +106,50 @@ app.use('/uploads', express.static('uploads'));
 // Make upload available to routes
 app.set('upload', upload);
 
+// Import routes synchronously for Vercel serverless
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const quizRoutes = require('./routes/quizzes');
+const quizDetailedRoutes = require('./routes/quiz');
+const contentRoutes = require('./routes/content');
+const connectionRoutes = require('./routes/connections');
+const submissionRoutes = require('./routes/submissions');
+
+// Routes - mounted synchronously
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/quizzes', quizRoutes);
+app.use('/api/quiz', quizDetailedRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/connections', connectionRoutes);
+app.use('/api/submissions', submissionRoutes);
+
 // Database connection
 async function connectDB() {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quizknow';
     console.log('Connecting to MongoDB at:', mongoUri);
-    
+
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
       socketTimeoutMS: 45000,
     });
-    
+
     console.log('MongoDB connected successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err);
   }
 }
 
-// Initialize database and routes
+// Initialize database and other async operations
 async function initializeApp() {
   await connectDB();
 
   // Ensure indexes are created
   const User = require('./models/User');
   await User.syncIndexes();
-
-  // Import routes after DB connection
-  const authRoutes = require('./routes/auth');
-  const userRoutes = require('./routes/users');
-  const quizRoutes = require('./routes/quizzes');
-  const quizDetailedRoutes = require('./routes/quiz');
-  const contentRoutes = require('./routes/content');
-  const connectionRoutes = require('./routes/connections');
-  const submissionRoutes = require('./routes/submissions');
-
-  // Routes
-  app.use('/api/auth', authRoutes);
-  app.use('/api/users', userRoutes);
-  app.use('/api/quizzes', quizRoutes);
-  app.use('/api/quiz', quizDetailedRoutes);
-  app.use('/api/content', contentRoutes);
-  app.use('/api/connections', connectionRoutes);
-  app.use('/api/submissions', submissionRoutes);
 
   // Socket.io for real-time notifications (only if not in Vercel)
   if (io) {
