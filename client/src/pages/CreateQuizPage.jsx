@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -26,7 +26,7 @@ const CreateQuizPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
   const [quizData, setQuizData] = useState({
     title: '',
     description: '',
@@ -49,11 +49,10 @@ const CreateQuizPage = () => {
     if (isEditing) {
       loadQuizData();
     }
-  }, [quizId]);
+  }, [quizId, isEditing, loadQuizData]);
 
-  const loadQuizData = async () => {
+  const loadQuizData = useCallback(async () => {
     try {
-      setLoading(true);
       const quiz = await getQuiz(quizId);
       // Transform server data to client format
       const clientQuizData = {
@@ -107,10 +106,8 @@ const CreateQuizPage = () => {
     } catch (error) {
       console.error('Error loading quiz:', error);
       setError('Failed to load quiz data');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [quizId, getQuiz]);
 
   const mapDifficultyReverse = (serverDifficulty) => {
     const difficultyMap = {
