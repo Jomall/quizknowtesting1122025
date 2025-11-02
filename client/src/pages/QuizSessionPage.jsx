@@ -25,46 +25,48 @@ const QuizSessionPage = () => {
   const [hasCompleted, setHasCompleted] = useState(false);
 
   useEffect(() => {
+    const loadQuiz = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Load quiz details
+        await fetchQuiz(quizId);
+      } catch (error) {
+        console.error('Error loading quiz:', error);
+        setError(error.message || 'Failed to load quiz');
+        setLoading(false);
+      }
+    };
+
     loadQuiz();
-  }, [quizId, loadQuiz]);
+  }, [quizId, fetchQuiz]);
 
   useEffect(() => {
     if (currentQuiz) {
       setQuiz(currentQuiz);
+      const checkCompleted = async () => {
+        try {
+          const sessions = await getUserQuizSessions();
+          const quizSessions = sessions.filter(s => s.quiz._id === quizId);
+          const completedCount = quizSessions.length;
+
+          // Check if max attempts reached (0 means unlimited)
+          const maxAttempts = currentQuiz?.settings?.maxAttempts || 1;
+          if (maxAttempts > 0 && completedCount >= maxAttempts) {
+            setHasCompleted(true);
+          }
+        } catch (error) {
+          console.error('Error checking completion:', error);
+        }
+      };
+
       checkCompleted();
       setLoading(false);
     }
-  }, [currentQuiz, checkCompleted]);
+  }, [currentQuiz, getUserQuizSessions, quizId]);
 
-  const loadQuiz = async () => {
-    try {
-      setLoading(true);
-      setError(null);
 
-      // Load quiz details
-      await fetchQuiz(quizId);
-    } catch (error) {
-      console.error('Error loading quiz:', error);
-      setError(error.message || 'Failed to load quiz');
-      setLoading(false);
-    }
-  };
-
-  const checkCompleted = async () => {
-    try {
-      const sessions = await getUserQuizSessions();
-      const quizSessions = sessions.filter(s => s.quiz._id === quizId);
-      const completedCount = quizSessions.length;
-
-      // Check if max attempts reached (0 means unlimited)
-      const maxAttempts = currentQuiz?.settings?.maxAttempts || 1;
-      if (maxAttempts > 0 && completedCount >= maxAttempts) {
-        setHasCompleted(true);
-      }
-    } catch (error) {
-      console.error('Error checking completion:', error);
-    }
-  };
 
   const handleStartQuiz = async () => {
     try {

@@ -49,7 +49,7 @@ const CreateQuizPage = () => {
     if (isEditing) {
       loadQuizData();
     }
-  }, [quizId, isEditing]);
+  }, [quizId, isEditing, loadQuizData]);
 
   const loadQuizData = useCallback(async () => {
     try {

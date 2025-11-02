@@ -61,7 +61,10 @@ const StudentDashboardPage = () => {
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
 
   useEffect(() => {
+
+
     loadDashboardData();
+
     // Set up polling to refresh dashboard data every 30 seconds
     const interval = setInterval(() => {
       loadDashboardData();
@@ -78,7 +81,7 @@ const StudentDashboardPage = () => {
       clearInterval(interval);
       window.removeEventListener('quizSubmitted', handleQuizSubmitted);
     };
-  }, [location, loadDashboardData]);
+  }, [location, getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes]);
 
   const fetchReceivedContent = async () => {
     try {
