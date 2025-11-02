@@ -177,7 +177,7 @@ const InstructorDashboardPage = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [loadDashboardData]);
+  }, [loadDashboardData, user]);
 
   useEffect(() => {
     if (!user.isApproved && activeTab === 3) {

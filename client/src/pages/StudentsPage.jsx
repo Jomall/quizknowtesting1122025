@@ -20,9 +20,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import {
-  PersonRemove as PersonRemoveIcon,
-} from '@mui/icons-material';
+
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
@@ -159,7 +157,7 @@ const StudentsPage = () => {
                       onClick={() => handleRemoveClick(connection)}
                       color="error"
                     >
-                      <PersonRemoveIcon />
+                      Remove
                     </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>

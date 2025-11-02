@@ -291,9 +291,6 @@ const StudentDashboardPage = () => {
                 {availableQuizzes.length > 0 ? (
                   availableQuizzes.map((quiz) => {
                     const isCompleted = completedQuizIds.has(quiz._id);
-                    const latestSubmission = submittedQuizzes
-                      .filter(s => s.quiz._id.toString() === quiz._id.toString())
-                      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))[0];
                     return (
                       <React.Fragment key={quiz._id}>
                         <ListItem

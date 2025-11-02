@@ -8,7 +8,6 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import QuizTaker from '../components/quiz/QuizTaker';
 import LoadingSpinner from '../components/common/LoadingSpinner';
