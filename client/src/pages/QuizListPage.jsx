@@ -17,7 +17,6 @@ import QuizList from '../components/quiz/QuizList';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const QuizListPage = () => {
-  const [quizzes, setQuizzes] = useState([]);
   const [filteredQuizzes, setFilteredQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -60,7 +59,6 @@ const QuizListPage = () => {
         page: pagination.page,
         limit: pagination.limit,
       });
-      setQuizzes(response.quizzes);
       setFilteredQuizzes(response.quizzes);
       setPagination({
         ...pagination,
@@ -71,7 +69,7 @@ const QuizListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAllQuizzes, filters, pagination.page, pagination.limit]);
+  }, [getAllQuizzes, filters, pagination.page, pagination.limit, pagination]);
 
   const handleFilterChange = (filterName, value) => {
     setFilters({

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -31,7 +30,7 @@ import {
   Publish as PublishIcon,
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
+
 import StudentSelector from '../components/common/StudentSelector';
 import axios from 'axios';
 

@@ -39,7 +39,7 @@ const QuizResultsPage = () => {
 
   useEffect(() => {
     loadResults();
-  }, [quizId, sessionId]);
+  }, [quizId, sessionId, loadResults]);
 
   const loadResults = async () => {
     try {

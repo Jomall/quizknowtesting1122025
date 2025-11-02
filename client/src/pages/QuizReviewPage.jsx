@@ -40,7 +40,7 @@ const QuizReviewPage = () => {
 
   useEffect(() => {
     loadReviewData();
-  }, [quizId, sessionId]);
+  }, [quizId, sessionId, loadReviewData]);
 
   useEffect(() => {
     const timer = setInterval(() => {
