@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -38,19 +38,7 @@ const QuizReviewPage = () => {
   const [error, setError] = useState(null);
   const [studyTime, setStudyTime] = useState(0);
 
-  useEffect(() => {
-    loadReviewData();
-  }, [quizId, sessionId, loadReviewData]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStudyTime(prev => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const loadReviewData = async () => {
+  const loadReviewData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -64,7 +52,19 @@ const QuizReviewPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [quizId, sessionId, getQuizResults]);
+
+  useEffect(() => {
+    loadReviewData();
+  }, [loadReviewData]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStudyTime(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -52,34 +52,10 @@ const StudentDashboardPage = () => {
     averageScore: 0,
     totalTime: 0,
   });
-  const [contentProgress, setContentProgress] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
-
-  useEffect(() => {
-    loadDashboardData();
-
-    // Set up polling to refresh dashboard data every 30 seconds
-    const interval = setInterval(() => {
-      loadDashboardData();
-    }, 30000); // 30 seconds
-
-    // Listen for quiz submission events to refresh immediately
-    const handleQuizSubmitted = () => {
-      loadDashboardData();
-    };
-
-    window.addEventListener('quizSubmitted', handleQuizSubmitted);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('quizSubmitted', handleQuizSubmitted);
-    };
-  }, [location, loadDashboardData]);
 
   const fetchReceivedContent = async () => {
     try {
@@ -107,30 +83,15 @@ const StudentDashboardPage = () => {
     }
   };
 
-  const fetchContentProgress = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/content/progress`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching content progress:', error);
-      return [];
-    }
-  };
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [quizzes, statsData, available, pending, submitted, content, progress, sentReqs] = await Promise.all([
+      const [quizzes, statsData, available, pending, submitted, content, sentReqs] = await Promise.all([
         getUserQuizzes(),
         getQuizStats(),
         getAvailableQuizzes(),
         getPendingQuizzes(),
         getSubmittedQuizzes(),
         fetchReceivedContent(),
-        fetchContentProgress(),
         fetchSentRequests(),
       ]);
       setRecentQuizzes(quizzes);
@@ -140,15 +101,32 @@ const StudentDashboardPage = () => {
       setSubmittedQuizzes(submitted);
       setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
       setReceivedContent(content);
-      setContentProgress(progress);
       setSentRequests(sentReqs);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      setError('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes]);
+
+  useEffect(() => {
+    loadDashboardData();
+
+    // Set up polling to refresh dashboard data every 30 seconds
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 30000); // 30 seconds
+
+    // Listen for quiz submission events to refresh immediately
+    const handleQuizSubmitted = () => {
+      loadDashboardData();
+    };
+
+    window.addEventListener('quizSubmitted', handleQuizSubmitted);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('quizSubmitted', handleQuizSubmitted);
+    };
+  }, [location, loadDashboardData]);
 
   const handleTakeQuiz = (quizId) => {
     navigate(`/quiz/${quizId}`);

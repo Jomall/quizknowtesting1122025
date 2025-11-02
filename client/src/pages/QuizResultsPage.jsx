@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -37,11 +37,7 @@ const QuizResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadResults();
-  }, [quizId, sessionId, loadResults]);
-
-  const loadResults = async () => {
+  const loadResults = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -65,7 +61,11 @@ const QuizResultsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [quizId, sessionId, getQuizResults]);
+
+  useEffect(() => {
+    loadResults();
+  }, [loadResults]);
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'success';

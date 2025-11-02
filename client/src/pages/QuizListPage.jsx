@@ -47,10 +47,6 @@ const QuizListPage = () => {
 
   const difficulties = ['Easy', 'Medium', 'Hard'];
 
-  useEffect(() => {
-    loadQuizzes();
-  }, [filters, pagination.page, loadQuizzes]);
-
   const loadQuizzes = useCallback(async () => {
     try {
       setLoading(true);
@@ -60,16 +56,20 @@ const QuizListPage = () => {
         limit: pagination.limit,
       });
       setFilteredQuizzes(response.quizzes);
-      setPagination({
-        ...pagination,
+      setPagination(prev => ({
+        ...prev,
         total: response.total,
-      });
+      }));
     } catch (error) {
       console.error('Error loading quizzes:', error);
     } finally {
       setLoading(false);
     }
-  }, [getAllQuizzes, filters, pagination.page, pagination.limit, pagination]);
+  }, [getAllQuizzes, filters, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    loadQuizzes();
+  }, [filters, pagination.page, loadQuizzes]);
 
   const handleFilterChange = (filterName, value) => {
     setFilters({
