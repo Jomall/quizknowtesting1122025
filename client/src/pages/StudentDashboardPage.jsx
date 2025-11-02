@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -57,7 +57,7 @@ const StudentDashboardPage = () => {
   const { user } = useAuth();
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
 
-  const fetchReceivedContent = async () => {
+  const fetchReceivedContent = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/content/assigned`, {
@@ -68,9 +68,9 @@ const StudentDashboardPage = () => {
       console.error('Error fetching received content:', error);
       return [];
     }
-  };
+  }, []);
 
-  const fetchSentRequests = async () => {
+  const fetchSentRequests = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/connections/sent-requests`, {
@@ -81,33 +81,33 @@ const StudentDashboardPage = () => {
       console.error('Error fetching sent requests:', error);
       return [];
     }
-  };
+  }, []);
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const [quizzes, statsData, available, pending, submitted, content, sentReqs] = await Promise.all([
+        getUserQuizzes(),
+        getQuizStats(),
+        getAvailableQuizzes(),
+        getPendingQuizzes(),
+        getSubmittedQuizzes(),
+        fetchReceivedContent(),
+        fetchSentRequests(),
+      ]);
+      setRecentQuizzes(quizzes);
+      setStats(statsData);
+      setAvailableQuizzes(available);
+      setPendingQuizzes(pending);
+      setSubmittedQuizzes(submitted);
+      setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
+      setReceivedContent(content);
+      setSentRequests(sentReqs);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  }, [getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes, fetchReceivedContent, fetchSentRequests]);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        const [quizzes, statsData, available, pending, submitted, content, sentReqs] = await Promise.all([
-          getUserQuizzes(),
-          getQuizStats(),
-          getAvailableQuizzes(),
-          getPendingQuizzes(),
-          getSubmittedQuizzes(),
-          fetchReceivedContent(),
-          fetchSentRequests(),
-        ]);
-        setRecentQuizzes(quizzes);
-        setStats(statsData);
-        setAvailableQuizzes(available);
-        setPendingQuizzes(pending);
-        setSubmittedQuizzes(submitted);
-        setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
-        setReceivedContent(content);
-        setSentRequests(sentReqs);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      }
-    };
-
     loadDashboardData();
 
     // Set up polling to refresh dashboard data every 30 seconds
@@ -126,7 +126,7 @@ const StudentDashboardPage = () => {
       clearInterval(interval);
       window.removeEventListener('quizSubmitted', handleQuizSubmitted);
     };
-  }, [location, getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes]);
+  }, [loadDashboardData]);
 
   const handleTakeQuiz = (quizId) => {
     navigate(`/quiz/${quizId}`);

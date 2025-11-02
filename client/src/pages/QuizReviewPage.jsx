@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -38,25 +38,25 @@ const QuizReviewPage = () => {
   const [error, setError] = useState(null);
   const [studyTime, setStudyTime] = useState(0);
 
-  useEffect(() => {
-    const loadReviewData = async () => {
-      try {
-        setLoading(true);
+  const loadReviewData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        const results = await getQuizResults(quizId, sessionId);
+      const results = await getQuizResults(quizId, sessionId);
 
-        setSession(results.session);
-        setQuiz(results.quiz);
-      } catch (error) {
-        console.error('Error loading review data:', error);
-        setError(error.message || 'Failed to load quiz review');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadReviewData();
+      setSession(results.session);
+      setQuiz(results.quiz);
+    } catch (error) {
+      console.error('Error loading review data:', error);
+      setError(error.message || 'Failed to load quiz review');
+    } finally {
+      setLoading(false);
+    }
   }, [quizId, sessionId, getQuizResults]);
+
+  useEffect(() => {
+    loadReviewData();
+  }, [loadReviewData]);
 
   useEffect(() => {
     const timer = setInterval(() => {

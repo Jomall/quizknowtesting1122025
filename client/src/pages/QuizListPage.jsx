@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -47,29 +47,29 @@ const QuizListPage = () => {
 
   const difficulties = ['Easy', 'Medium', 'Hard'];
 
-  useEffect(() => {
-    const loadQuizzes = async () => {
-      try {
-        setLoading(true);
-        const response = await getAllQuizzes({
-          ...filters,
-          page: pagination.page,
-          limit: pagination.limit,
-        });
-        setFilteredQuizzes(response.quizzes);
-        setPagination(prev => ({
-          ...prev,
-          total: response.total,
-        }));
-      } catch (error) {
-        console.error('Error loading quizzes:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadQuizzes();
+  const loadQuizzes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getAllQuizzes({
+        ...filters,
+        page: pagination.page,
+        limit: pagination.limit,
+      });
+      setFilteredQuizzes(response.quizzes);
+      setPagination(prev => ({
+        ...prev,
+        total: response.total,
+      }));
+    } catch (error) {
+      console.error('Error loading quizzes:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [getAllQuizzes, filters, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    loadQuizzes();
+  }, [loadQuizzes]);
 
   const handleFilterChange = (filterName, value) => {
     setFilters({
