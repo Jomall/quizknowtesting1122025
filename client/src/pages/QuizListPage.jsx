@@ -17,7 +17,7 @@ import QuizList from '../components/quiz/QuizList';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const QuizListPage = () => {
-  const [quizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
   const [filteredQuizzes, setFilteredQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
