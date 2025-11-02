@@ -53,7 +53,6 @@ const StudentDashboardPage = () => {
     totalTime: 0,
   });
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
 
