@@ -29,7 +29,7 @@ import {
   Link as LinkIcon,
   Print as PrintIcon,
 } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import InstructorBrowser from '../components/common/InstructorBrowser';

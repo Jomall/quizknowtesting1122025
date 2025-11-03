@@ -19,7 +19,7 @@
       "dest": "/server.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\..*)",
       "dest": "/client/build/$1"
     },
     {
