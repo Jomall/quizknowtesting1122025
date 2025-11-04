@@ -3,17 +3,7 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 30
-      }
-    },
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -23,10 +13,9 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/$1"
+      "dest": "/server.js"
     }
   ],
-  "outputDirectory": "client/build",
   "env": {
     "NODE_ENV": "production"
   }
