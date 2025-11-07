@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Container,
   Grid,
   Paper,
@@ -23,6 +22,7 @@ import {
   DialogActions,
   IconButton,
   TextField,
+  Box,
 } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -81,49 +81,81 @@ const AdminDashboardPage = () => {
   const loadDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      console.log('API_BASE_URL:', API_BASE_URL);
+      console.log('Token present:', !!token);
+
       const [usersRes, pendingRes, quizzesRes] = await Promise.all([
-        fetch('http://localhost:5000/api/users', {
+        fetch(`${API_BASE_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/users/pending-instructors', {
+        fetch(`${API_BASE_URL}/users/pending-instructors`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/quizzes', {
+        fetch(`${API_BASE_URL}/quizzes`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
 
-      const users = await usersRes.json();
-      const pending = await pendingRes.json();
-      const quizzes = await quizzesRes.json();
+      console.log('Users response status:', usersRes.status);
+      console.log('Pending response status:', pendingRes.status);
+      console.log('Quizzes response status:', quizzesRes.status);
 
-      const totalUsers = users.length;
-      const totalStudents = users.filter(u => u.role === 'student').length;
-      const totalInstructors = users.filter(u => u.role === 'instructor').length;
-      const totalAdmins = users.filter(u => u.role === 'admin').length;
+      let users = [];
+      let pending = [];
+      let quizzes = [];
+
+      if (usersRes.ok) {
+        users = await usersRes.json();
+      } else {
+        console.error('Failed to fetch users:', usersRes.status);
+      }
+
+      if (pendingRes.ok) {
+        pending = await pendingRes.json();
+      } else {
+        console.error('Failed to fetch pending instructors:', pendingRes.status);
+      }
+
+      if (quizzesRes.ok) {
+        quizzes = await quizzesRes.json();
+      } else {
+        console.error('Failed to fetch quizzes:', quizzesRes.status);
+      }
+
+      console.log('Users data:', users);
+      console.log('Pending data:', pending);
+      console.log('Quizzes data:', quizzes);
+
+      const totalUsers = Array.isArray(users) ? users.length : 0;
+      const totalStudents = Array.isArray(users) ? users.filter(u => u.role === 'student').length : 0;
+      const totalInstructors = Array.isArray(users) ? users.filter(u => u.role === 'instructor').length : 0;
+      const totalAdmins = Array.isArray(users) ? users.filter(u => u.role === 'admin').length : 0;
+
+      console.log('Calculated stats:', { totalUsers, totalStudents, totalInstructors, totalAdmins, totalQuizzes: Array.isArray(quizzes) ? quizzes.length : 0, pendingApprovals: Array.isArray(pending) ? pending.length : 0 });
 
       setStats({
         totalUsers,
         totalStudents,
         totalInstructors,
         totalAdmins,
-        totalQuizzes: quizzes.length,
-        pendingApprovals: pending.length,
+        totalQuizzes: Array.isArray(quizzes) ? quizzes.length : 0,
+        pendingApprovals: Array.isArray(pending) ? pending.length : 0,
       });
-      setRecentUsers(users.map(u => ({
+      setRecentUsers(Array.isArray(users) ? users.map(u => ({
         id: u._id,
         name: `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username,
         role: u.role,
         email: u.email,
         joined: new Date(u.createdAt).toLocaleDateString(),
         isSuspended: u.isSuspended
-      })));
-      setPendingInstructors(pending.map(u => ({
+      })) : []);
+      setPendingInstructors(Array.isArray(pending) ? pending.map(u => ({
         id: u._id,
         name: `${u.profile?.firstName || ''} ${u.profile?.lastName || ''}`.trim() || u.username,
         email: u.email,
         applied: new Date(u.createdAt).toLocaleDateString()
-      })));
+      })) : []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
@@ -140,7 +172,8 @@ const AdminDashboardPage = () => {
   const handleApproveInstructor = async (instructorId) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/users/approve-instructor/${instructorId}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      await fetch(`${API_BASE_URL}/users/approve-instructor/${instructorId}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -165,7 +198,8 @@ const AdminDashboardPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/users/${userToDelete.id}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/${userToDelete.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -197,7 +231,8 @@ const AdminDashboardPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/users/suspend/${userToSuspend.id}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/suspend/${userToSuspend.id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -223,7 +258,8 @@ const AdminDashboardPage = () => {
   const loadInstructors = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/users/instructors', {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/instructors`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -245,7 +281,8 @@ const AdminDashboardPage = () => {
   const loadQuizzes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/quizzes', {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/quizzes`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -268,7 +305,8 @@ const AdminDashboardPage = () => {
   const handleLike = async (quizId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/quizzes/${quizId}/like`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/like`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -300,7 +338,8 @@ const AdminDashboardPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/users/instructor-limit/${instructorToEdit.id}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/instructor-limit/${instructorToEdit.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +374,8 @@ const AdminDashboardPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/users/search?q=${encodeURIComponent(searchQuery)}`, {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
