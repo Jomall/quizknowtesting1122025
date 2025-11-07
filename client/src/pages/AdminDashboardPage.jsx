@@ -23,6 +23,7 @@ import {
   IconButton,
   TextField,
   Box,
+  Checkbox,
 } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -65,6 +66,7 @@ const AdminDashboardPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -397,6 +399,124 @@ const AdminDashboardPage = () => {
     setProfileDialogOpen(true);
   };
 
+  const handleSelectUser = (userId) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === recentUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(recentUsers.map(user => user.id));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedUsers.length === 0) return;
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedUsers.length} selected user(s)? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+
+      const deletePromises = selectedUsers.map(userId =>
+        fetch(`${API_BASE_URL}/users/${userId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const failedDeletes = results.filter(res => !res.ok).length;
+
+      if (failedDeletes === 0) {
+        alert(`${selectedUsers.length} user(s) deleted successfully`);
+      } else {
+        alert(`${selectedUsers.length - failedDeletes} user(s) deleted successfully, ${failedDeletes} failed`);
+      }
+
+      setSelectedUsers([]);
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error batch deleting users:', error);
+      alert('Error deleting users: Network error');
+    }
+  };
+
+  const handleBatchSuspend = async () => {
+    if (selectedUsers.length === 0) return;
+
+    const confirmSuspend = window.confirm(`Are you sure you want to suspend ${selectedUsers.length} selected user(s)?`);
+    if (!confirmSuspend) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+
+      const suspendPromises = selectedUsers.map(userId =>
+        fetch(`${API_BASE_URL}/users/suspend/${userId}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+
+      const results = await Promise.all(suspendPromises);
+      const failedSuspends = results.filter(res => !res.ok).length;
+
+      if (failedSuspends === 0) {
+        alert(`${selectedUsers.length} user(s) suspended successfully`);
+      } else {
+        alert(`${selectedUsers.length - failedSuspends} user(s) suspended successfully, ${failedSuspends} failed`);
+      }
+
+      setSelectedUsers([]);
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error batch suspending users:', error);
+      alert('Error suspending users: Network error');
+    }
+  };
+
+  const handleBatchUnsuspend = async () => {
+    if (selectedUsers.length === 0) return;
+
+    const confirmUnsuspend = window.confirm(`Are you sure you want to unsuspend ${selectedUsers.length} selected user(s)?`);
+    if (!confirmUnsuspend) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+
+      const unsuspendPromises = selectedUsers.map(userId =>
+        fetch(`${API_BASE_URL}/users/suspend/${userId}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+
+      const results = await Promise.all(unsuspendPromises);
+      const failedUnsuspends = results.filter(res => !res.ok).length;
+
+      if (failedUnsuspends === 0) {
+        alert(`${selectedUsers.length} user(s) unsuspended successfully`);
+      } else {
+        alert(`${selectedUsers.length - failedUnsuspends} user(s) unsuspended successfully, ${failedUnsuspends} failed`);
+      }
+
+      setSelectedUsers([]);
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error batch unsuspending users:', error);
+      alert('Error unsuspending users: Network error');
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4 }}>
@@ -528,7 +648,29 @@ const AdminDashboardPage = () => {
                     Manage All Users
                   </Button>
                 </Box>
+                {selectedUsers.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                    <Button variant="contained" color="error" size="small" onClick={handleBatchDelete} startIcon={<DeleteIcon />}>
+                      Delete Selected ({selectedUsers.length})
+                    </Button>
+                    <Button variant="contained" color="warning" size="small" onClick={handleBatchSuspend} startIcon={<BlockIcon />}>
+                      Suspend Selected ({selectedUsers.length})
+                    </Button>
+                    <Button variant="contained" color="success" size="small" onClick={handleBatchUnsuspend} startIcon={<CheckCircleIcon />}>
+                      Unsuspend Selected ({selectedUsers.length})
+                    </Button>
+                  </Box>
+                )}
                 <List sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                  <ListItem>
+                    <Checkbox
+                      checked={selectedUsers.length === recentUsers.length && recentUsers.length > 0}
+                      indeterminate={selectedUsers.length > 0 && selectedUsers.length < recentUsers.length}
+                      onChange={handleSelectAll}
+                    />
+                    <ListItemText primary="Select All" />
+                  </ListItem>
+                  <Divider />
                   {recentUsers.map((user) => (
                     <React.Fragment key={user.id}>
                       <ListItem
@@ -548,6 +690,11 @@ const AdminDashboardPage = () => {
                           </Box>
                         }
                       >
+                        <Checkbox
+                          checked={selectedUsers.includes(user.id)}
+                          onChange={() => handleSelectUser(user.id)}
+                          sx={{ mr: 1 }}
+                        />
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: 'primary.main' }}>
                             {user.name.charAt(0)}
