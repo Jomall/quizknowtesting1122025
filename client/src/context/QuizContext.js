@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 
@@ -82,7 +82,7 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const fetchQuiz = async (quizId) => {
+  const fetchQuiz = useCallback(async (quizId) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     dispatch({ type: ACTIONS.RESET_COMPLETED });
     try {
@@ -91,7 +91,7 @@ export const QuizProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: ACTIONS.SET_ERROR, payload: error.message });
     }
-  };
+  }, []);
 
   const startQuiz = async (quizId) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
@@ -227,7 +227,7 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const getAvailableQuizzes = async () => {
+  const getAvailableQuizzes = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       console.log('Frontend: Fetching available quizzes for student');
@@ -246,7 +246,7 @@ export const QuizProvider = ({ children }) => {
       console.error('Frontend: Error response:', error.response?.data);
       return [];
     }
-  };
+  }, []);
 
   const getPendingQuizzes = async () => {
     try {
@@ -274,15 +274,20 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const getAllQuizzes = async () => {
+  const getAllQuizzes = useCallback(async () => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     try {
-      const response = await quizAPI.getAllQuizzes();
-      dispatch({ type: ACTIONS.SET_QUIZZES, payload: response.data.quizzes || response.data });
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/quizzes/my-quizzes`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      dispatch({ type: ACTIONS.SET_QUIZZES, payload: response.data });
+      return response.data;
     } catch (error) {
       dispatch({ type: ACTIONS.SET_ERROR, payload: error.message });
+      return [];
     }
-  };
+  }, []);
 
   const getQuizResults = async (quizId, sessionId = null) => {
     try {
@@ -298,7 +303,7 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const getUserQuizSessions = async () => {
+  const getUserQuizSessions = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/quiz/my-sessions`, {
@@ -309,7 +314,20 @@ export const QuizProvider = ({ children }) => {
       console.error('Error fetching user quiz sessions:', error);
       return [];
     }
-  };
+  }, []);
+
+  const getQuiz = useCallback(async (quizId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/quizzes/${quizId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching quiz:', error);
+      throw error;
+    }
+  }, []);
 
   const value = {
     ...state,
@@ -329,6 +347,7 @@ export const QuizProvider = ({ children }) => {
     getSubmittedQuizzes,
     getAllQuizzes,
     getQuizResults,
+    getQuiz,
   };
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;

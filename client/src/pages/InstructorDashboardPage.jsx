@@ -59,6 +59,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StudentSelector from '../components/common/StudentSelector';
 import ConnectionRequests from '../components/common/ConnectionRequests';
+import QuizList from '../components/quiz/QuizList';
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 
@@ -1061,6 +1062,7 @@ const InstructorDashboardPage = () => {
             {user.isApproved && <Tab label="Connection Requests" />}
             <Tab label="Manage Assignments" />
             <Tab label="Review Submissions" />
+            <Tab label="My Quizzes" />
           </Tabs>
         </Box>
 
@@ -1153,6 +1155,8 @@ const InstructorDashboardPage = () => {
         {activeTab === 4 && renderManageAssignmentsTab()}
 
         {activeTab === 5 && renderReviewSubmissionsTab()}
+
+        {activeTab === 6 && <QuizList userRole="teacher" />}
       </Paper>
 
       {assignDialog.open && (
