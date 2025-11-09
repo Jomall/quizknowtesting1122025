@@ -107,34 +107,39 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         console.log('Select-all question data:', {
           options: question.options,
           optionsType: typeof question.options,
-          optionsIsArray: Array.isArray(question.options)
+          optionsIsArray: Array.isArray(question.options),
+          questionText: question.question
         });
 
         // Safe array access with defaults
         const selectAllOptions = Array.isArray(question.options) ? question.options : [];
+        console.log('selectAllOptions array:', selectAllOptions);
 
         return (
           <FormControl component="fieldset">
             <FormLabel component="legend">{question.question}</FormLabel>
             <FormGroup>
               {selectAllOptions.length > 0 ? (
-                selectAllOptions.map((option, index) => (
-                  <FormControlLabel
-                    key={option._id || index}
-                    control={
-                      <Checkbox
-                        checked={currentAnswer?.includes(option.text) || false}
-                        onChange={(e) => {
-                          const newAnswer = e.target.checked
-                            ? [...(currentAnswer || []), option.text]
-                            : (currentAnswer || []).filter(item => item !== option.text);
-                          handleAnswerChange(newAnswer);
-                        }}
-                      />
-                    }
-                    label={option.text}
-                  />
-                ))
+                selectAllOptions.map((option, index) => {
+                  console.log('Mapping select-all option:', option, 'at index:', index);
+                  return (
+                    <FormControlLabel
+                      key={option._id || index}
+                      control={
+                        <Checkbox
+                          checked={currentAnswer?.includes(option.text) || false}
+                          onChange={(e) => {
+                            const newAnswer = e.target.checked
+                              ? [...(currentAnswer || []), option.text]
+                              : (currentAnswer || []).filter(item => item !== option.text);
+                            handleAnswerChange(newAnswer);
+                          }}
+                        />
+                      }
+                      label={option.text}
+                    />
+                  );
+                })
               ) : (
                 <Typography variant="body2" color="error">
                   Options not available for this question.
@@ -273,11 +278,13 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         console.log('Ordering question data:', {
           items: question.items,
           itemsType: typeof question.items,
-          itemsIsArray: Array.isArray(question.items)
+          itemsIsArray: Array.isArray(question.items),
+          questionText: question.question
         });
 
         // Safe array access with defaults
         const items = Array.isArray(question.items) ? question.items : [];
+        console.log('ordering items array:', items);
 
         return (
           <Box>
@@ -288,21 +295,24 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
               Drag and drop to reorder the items correctly
             </Typography>
             {items.length > 0 ? (
-              items.map((item, index) => (
-                <Box key={index} mb={1}>
-                  <TextField
-                    type="number"
-                    label={`Position for: ${item}`}
-                    value={currentAnswer?.[item] || ''}
-                    onChange={(e) => {
-                      const newAnswer = { ...(currentAnswer || {}), [item]: parseInt(e.target.value) };
-                      handleAnswerChange(newAnswer);
-                    }}
-                    inputProps={{ min: 1, max: items.length }}
-                    fullWidth
-                  />
-                </Box>
-              ))
+              items.map((item, index) => {
+                console.log('Mapping ordering item:', item, 'at index:', index);
+                return (
+                  <Box key={index} mb={1}>
+                    <TextField
+                      type="number"
+                      label={`Position for: ${item}`}
+                      value={currentAnswer?.[item] || ''}
+                      onChange={(e) => {
+                        const newAnswer = { ...(currentAnswer || {}), [item]: parseInt(e.target.value) };
+                        handleAnswerChange(newAnswer);
+                      }}
+                      inputProps={{ min: 1, max: items.length }}
+                      fullWidth
+                    />
+                  </Box>
+                );
+              })
             ) : (
               <Typography variant="body2" color="error">
                 Items not available for ordering.
