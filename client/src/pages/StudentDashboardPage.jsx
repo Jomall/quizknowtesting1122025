@@ -93,14 +93,14 @@ const StudentDashboardPage = () => {
         fetchReceivedContent(),
         fetchSentRequests(),
       ]);
-      setRecentQuizzes(quizzes);
+      setRecentQuizzes(quizzes.filter(quiz => quiz && quiz.title));
       setStats(statsData);
       setAvailableQuizzes(available);
       setPendingQuizzes(pending);
       const validSubmitted = submitted.filter(s => s);
       const filteredSubmitted = validSubmitted.filter(s => s.quiz && s.quiz._id && s.quiz.title);
       setSubmittedQuizzes(filteredSubmitted);
-      setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz && s.quiz._id).map(s => s.quiz._id.toString())));
+      setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz?._id).map(s => s.quiz._id.toString())));
       setReceivedContent(content);
       setSentRequests(sentReqs);
     } catch (error) {
