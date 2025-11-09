@@ -217,9 +217,27 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           rightItemsIsArray: Array.isArray(question.rightItems)
         });
 
+        // Defensive checks: ensure arrays exist and are arrays
+        if (!question.leftItems || !Array.isArray(question.leftItems)) {
+          console.error('Matching question: leftItems is not an array or is undefined', question.leftItems);
+          return (
+            <Typography variant="body2" color="error">
+              Left items not available for this matching question.
+            </Typography>
+          );
+        }
+        if (!question.rightItems || !Array.isArray(question.rightItems)) {
+          console.error('Matching question: rightItems is not an array or is undefined', question.rightItems);
+          return (
+            <Typography variant="body2" color="error">
+              Right items not available for this matching question.
+            </Typography>
+          );
+        }
+
         // Safe array access with defaults
-        const leftItems = Array.isArray(question.leftItems) ? question.leftItems : [];
-        const rightItems = Array.isArray(question.rightItems) ? question.rightItems : [];
+        const leftItems = question.leftItems;
+        const rightItems = question.rightItems;
 
         return (
           <Box>
