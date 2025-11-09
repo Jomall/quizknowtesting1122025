@@ -39,7 +39,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
               value={currentAnswer || ''}
               onChange={(e) => handleAnswerChange(e.target.value)}
             >
-              {question.options && question.options.length > 0 ? (
+              {Array.isArray(question.options) && question.options.length > 0 ? (
                 question.options.map((option, index) => (
                   <FormControlLabel
                     key={option._id || index}
@@ -80,7 +80,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           <FormControl component="fieldset">
             <FormLabel component="legend">{question.question}</FormLabel>
             <FormGroup>
-              {question.options && question.options.length > 0 ? (
+              {Array.isArray(question.options) && question.options.length > 0 ? (
                 question.options.map((option, index) => (
                   <FormControlLabel
                     key={option._id || index}
@@ -166,7 +166,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                 <Typography variant="subtitle1" gutterBottom>
                   Items to Match:
                 </Typography>
-                {question.leftItems && question.leftItems.length > 0 ? (
+                {Array.isArray(question.leftItems) && question.leftItems.length > 0 ? (
                   question.leftItems.map((item, index) => (
                     <Box key={index} mb={1}>
                       <Chip label={item} />
@@ -182,7 +182,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                 <Typography variant="subtitle1" gutterBottom>
                   Match with:
                 </Typography>
-                {question.rightItems && question.rightItems.length > 0 ? (
+                {Array.isArray(question.rightItems) && question.rightItems.length > 0 ? (
                   question.rightItems.map((item, index) => (
                     <Box key={index} mb={1}>
                       <TextField
@@ -197,7 +197,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                         fullWidth
                       >
                         <option value="">Select match</option>
-                        {question.leftItems && question.leftItems.length > 0 ? (
+                        {Array.isArray(question.leftItems) && question.leftItems.length > 0 ? (
                           question.leftItems.map((leftItem, leftIndex) => (
                             <option key={leftIndex} value={leftItem}>
                               {leftItem}
@@ -228,7 +228,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
             <Typography variant="body2" color="textSecondary" gutterBottom>
               Drag and drop to reorder the items correctly
             </Typography>
-            {question.items && question.items.length > 0 ? (
+            {Array.isArray(question.items) && question.items.length > 0 ? (
               question.items.map((item, index) => (
                 <Box key={index} mb={1}>
                   <TextField
