@@ -283,17 +283,55 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         );
 
       case 'ordering':
+        const handleDragStart = (e, index) => {
+          e.dataTransfer.setData('text/plain', index);
+        };
+
+        const handleDragOver = (e) => {
+          e.preventDefault();
+        };
+
+        const handleDrop = (e, dropIndex) => {
+          e.preventDefault();
+          const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          if (dragIndex === dropIndex) return;
+
+          const newOptions = [...currentQuestion.options];
+          const [draggedItem] = newOptions.splice(dragIndex, 1);
+          newOptions.splice(dropIndex, 0, draggedItem);
+
+          handleQuestionChange('options', newOptions);
+        };
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
               Ordering Items
             </Typography>
             <Typography variant="body2" color="textSecondary" gutterBottom>
-              Add items that students need to put in the correct order. The correct order will be the sequence you enter here.
+              Add items that students need to put in the correct order. Drag and drop to reorder them. The order you set here will be the correct answer.
             </Typography>
             {currentQuestion.options && currentQuestion.options.length > 0 ? (
               currentQuestion.options.map((option, index) => (
-                <Box key={index} display="flex" alignItems="center" mb={2}>
+                <Box
+                  key={index}
+                  display="flex"
+                  alignItems="center"
+                  mb={2}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  sx={{
+                    cursor: 'grab',
+                    '&:active': { cursor: 'grabbing' },
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    p: 1,
+                    '&:hover': { backgroundColor: '#f5f5f5' }
+                  }}
+                >
+                  <DragIndicator sx={{ mr: 1, color: 'text.secondary' }} />
                   <Typography variant="body2" sx={{ mr: 2, minWidth: '30px' }}>
                     {index + 1}.
                   </Typography>
