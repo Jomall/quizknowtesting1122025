@@ -1,18 +1,8 @@
-# ESLint Fixes for Build Errors
+# TODO: Set up connection to GitHub and Vercel
 
-## QuizListPage.jsx
-- [ ] Move `loadQuizzes` function definition before useEffect
-- [ ] Fix useCallback dependencies for `loadQuizzes`
-
-## QuizResultsPage.jsx
-- [ ] Move `loadResults` function definition before useEffect or wrap in useCallback
-
-## QuizReviewPage.jsx
-- [ ] Move `loadReviewData` function definition before useEffect or wrap in useCallback
-
-## StudentDashboardPage.jsx
-- [ ] Remove unused variables: `contentProgress`, `loading`, `error`
-- [ ] Move `loadDashboardData` function definition before useEffect or wrap in useCallback
-
-## Verification
-- [ ] Run build to check if errors are resolved
+- [x] Check current Git remotes
+- [x] Set Git remote origin to https://github.com/Jomall/quizknowtesting1122025 if not already set
+- [x] Check if Vercel CLI is installed; install if necessary
+- [x] Link the project to Vercel if not already linked
+- [ ] Test pushing a commit to GitHub
+- [ ] Verify Vercel deployment triggers
