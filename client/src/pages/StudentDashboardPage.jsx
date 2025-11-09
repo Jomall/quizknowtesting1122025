@@ -110,14 +110,13 @@ const StudentDashboardPage = () => {
 
       setRecentQuizzes(safeQuizzes.filter(quiz => quiz && quiz.title));
       setStats(safeStats);
-      setAvailableQuizzes(safeAvailable);
-      setPendingQuizzes(safePending);
-      const validSubmitted = safeSubmitted.filter(s => s);
-      const filteredSubmitted = validSubmitted.filter(s => s.quiz && s.quiz._id && s.quiz.title);
-      setSubmittedQuizzes(filteredSubmitted);
-      setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz && s.quiz._id).map(s => s.quiz._id.toString())));
-      setReceivedContent(safeContent);
-      setSentRequests(safeSentReqs);
+      setAvailableQuizzes(safeAvailable.filter(quiz => quiz && quiz._id && quiz.title));
+      setPendingQuizzes(safePending.filter(quiz => quiz && quiz._id && quiz.title));
+      const validSubmitted = safeSubmitted.filter(s => s && s.quiz && s.quiz._id && s.quiz.title);
+      setSubmittedQuizzes(validSubmitted);
+      setCompletedQuizIds(new Set(validSubmitted.filter(s => s.quiz && s.quiz._id).map(s => s.quiz._id.toString())));
+      setReceivedContent(safeContent.filter(content => content && content._id));
+      setSentRequests(safeSentReqs.filter(request => request && request._id));
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       // Set safe defaults on error
