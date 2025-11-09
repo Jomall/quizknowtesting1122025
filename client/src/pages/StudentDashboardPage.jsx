@@ -268,8 +268,8 @@ const StudentDashboardPage = () => {
             </Box>
             <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
               <List>
-                {availableQuizzes.length > 0 ? (
-                  availableQuizzes.map((quiz) => {
+                {availableQuizzes.filter(quiz => quiz && quiz._id && quiz.title).length > 0 ? (
+                  availableQuizzes.filter(quiz => quiz && quiz._id && quiz.title).map((quiz) => {
                     const isCompleted = completedQuizIds.has(quiz._id);
                     return (
                       <React.Fragment key={quiz._id}>
@@ -329,8 +329,8 @@ const StudentDashboardPage = () => {
             </Box>
             <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
               <List>
-                {pendingQuizzes.length > 0 ? (
-                  pendingQuizzes.map((quiz) => (
+                {pendingQuizzes.filter(quiz => quiz && quiz._id && quiz.title).length > 0 ? (
+                  pendingQuizzes.filter(quiz => quiz && quiz._id && quiz.title).map((quiz) => (
                     <React.Fragment key={quiz._id}>
                       <ListItem
                         secondaryAction={
