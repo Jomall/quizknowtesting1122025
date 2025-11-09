@@ -171,22 +171,28 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Select All Options
+              Select All That Apply Options
             </Typography>
-            {currentQuestion.options.map((option, index) => (
-              <Box key={index} display="flex" alignItems="center" mb={2}>
-                <TextField
-                  fullWidth
-                  label={`Option ${index + 1}`}
-                  value={option}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  variant="outlined"
-                />
-                <IconButton onClick={() => handleRemoveOption(index)} disabled={currentQuestion.options.length <= 2}>
-                  <Delete />
-                </IconButton>
-              </Box>
-            ))}
+            {currentQuestion.options && currentQuestion.options.length > 0 ? (
+              currentQuestion.options.map((option, index) => (
+                <Box key={index} display="flex" alignItems="center" mb={2}>
+                  <TextField
+                    fullWidth
+                    label={`Option ${index + 1}`}
+                    value={option}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    variant="outlined"
+                  />
+                  <IconButton onClick={() => handleRemoveOption(index)} disabled={currentQuestion.options.length <= 2}>
+                    <Delete />
+                  </IconButton>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="error">
+                No options available. Please add at least 2 options.
+              </Typography>
+            )}
             <Button
               startIcon={<Add />}
               onClick={handleAddOption}
@@ -201,7 +207,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
               value={Array.isArray(currentQuestion.correctAnswer) ? currentQuestion.correctAnswer.join(', ') : ''}
               onChange={(e) => handleQuestionChange('correctAnswer', e.target.value.split(',').map(s => s.trim()))}
               margin="normal"
-              helperText="Enter correct options separated by commas"
+              helperText="Enter the correct options separated by commas (e.g., Option 1, Option 3)"
             />
           </Box>
         );
@@ -251,23 +257,35 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Order Items
+              Ordering Items
             </Typography>
-            {currentQuestion.options.map((option, index) => (
-              <Box key={index} display="flex" alignItems="center" mb={2}>
-                <DragIndicator sx={{ mr: 1 }} />
-                <TextField
-                  fullWidth
-                  label={`Item ${index + 1}`}
-                  value={option}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  variant="outlined"
-                />
-                <IconButton onClick={() => handleRemoveOption(index)} disabled={currentQuestion.options.length <= 2}>
-                  <Delete />
-                </IconButton>
-              </Box>
-            ))}
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Add items that students need to put in the correct order. The correct order will be the sequence you enter here.
+            </Typography>
+            {currentQuestion.options && currentQuestion.options.length > 0 ? (
+              currentQuestion.options.map((option, index) => (
+                <Box key={index} display="flex" alignItems="center" mb={2}>
+                  <Typography variant="body2" sx={{ mr: 2, minWidth: '30px' }}>
+                    {index + 1}.
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label={`Item ${index + 1}`}
+                    value={option}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    variant="outlined"
+                    placeholder="Enter item to be ordered"
+                  />
+                  <IconButton onClick={() => handleRemoveOption(index)} disabled={currentQuestion.options.length <= 2}>
+                    <Delete />
+                  </IconButton>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="error">
+                No items available. Please add at least 2 items to order.
+              </Typography>
+            )}
             <Button
               startIcon={<Add />}
               onClick={handleAddOption}
