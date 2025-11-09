@@ -34,6 +34,15 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
   const renderQuestionType = () => {
     switch (question.type) {
       case 'multiple-choice':
+        console.log('Multiple-choice question data:', {
+          options: question.options,
+          optionsType: typeof question.options,
+          optionsIsArray: Array.isArray(question.options)
+        });
+
+        // Safe array access with defaults
+        const options = Array.isArray(question.options) ? question.options : [];
+
         return (
           <FormControl component="fieldset">
             <FormLabel component="legend">{question.question}</FormLabel>
@@ -41,8 +50,8 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
               value={currentAnswer || ''}
               onChange={(e) => handleAnswerChange(e.target.value)}
             >
-              {Array.isArray(question.options) && question.options.length > 0 ? (
-                question.options.map((option, index) => (
+              {options.length > 0 ? (
+                options.map((option, index) => (
                   <FormControlLabel
                     key={option._id || index}
                     value={option.text}
@@ -78,12 +87,21 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         );
 
       case 'select-all':
+        console.log('Select-all question data:', {
+          options: question.options,
+          optionsType: typeof question.options,
+          optionsIsArray: Array.isArray(question.options)
+        });
+
+        // Safe array access with defaults
+        const selectAllOptions = Array.isArray(question.options) ? question.options : [];
+
         return (
           <FormControl component="fieldset">
             <FormLabel component="legend">{question.question}</FormLabel>
             <FormGroup>
-              {Array.isArray(question.options) && question.options.length > 0 ? (
-                question.options.map((option, index) => (
+              {selectAllOptions.length > 0 ? (
+                selectAllOptions.map((option, index) => (
                   <FormControlLabel
                     key={option._id || index}
                     control={
