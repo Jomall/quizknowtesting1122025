@@ -15,6 +15,16 @@ import {
 } from '@mui/material';
 
 const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnswer, onAnswerChange }) => {
+  if (!question) {
+    return (
+      <Box>
+        <Typography variant="body1" color="error">
+          Question data is not available.
+        </Typography>
+      </Box>
+    );
+  }
+
   const handleAnswerChange = (value) => {
     onAnswerChange(question._id, value);
   };
