@@ -123,19 +123,25 @@ const QuizTaker = ({ quizId }) => {
           <Typography variant="h4" gutterBottom>
             {currentQuiz.title}
           </Typography>
-          
+
           <Box mb={3}>
             <ProgressBar progress={progress} />
             <Timer timeRemaining={session.timeRemaining} />
           </Box>
 
-          <QuestionRenderer
-            question={currentQuestion}
-            questionIndex={currentQuestionIndex}
-            totalQuestions={currentQuiz.questions.length}
-            currentAnswer={answers[currentQuestion._id]}
-            onAnswerChange={handleAnswerChange}
-          />
+          {currentQuestion ? (
+            <QuestionRenderer
+              question={currentQuestion}
+              questionIndex={currentQuestionIndex}
+              totalQuestions={currentQuiz.questions.length}
+              currentAnswer={answers[currentQuestion._id]}
+              onAnswerChange={handleAnswerChange}
+            />
+          ) : (
+            <Typography variant="body1" color="error">
+              Question data is not available.
+            </Typography>
+          )}
 
           <QuizNavigation
             currentQuestionIndex={currentQuestionIndex}
