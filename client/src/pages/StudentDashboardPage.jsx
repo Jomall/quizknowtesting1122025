@@ -469,14 +469,14 @@ const StudentDashboardPage = () => {
                             <Button
                               variant="outlined"
                               size="small"
-                              onClick={() => navigate(`/quiz-review/${submission.quiz._id}`)}
+                              onClick={() => navigate(`/quiz-review/${submission.quiz?._id}`)}
                             >
                               View Quiz
                             </Button>
                             <Button
                               variant="contained"
                               size="small"
-                              onClick={() => navigate(`/quiz/${submission.quiz._id}/results`)}
+                              onClick={() => navigate(`/quiz/${submission.quiz?._id}/results`)}
                             >
                               View Results
                             </Button>
@@ -485,12 +485,12 @@ const StudentDashboardPage = () => {
                       >
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: 'info.main' }}>
-                            {submission.quiz.title.charAt(0)}
+                            {submission.quiz?.title?.charAt(0) || '?'}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           sx={{ maxWidth: '50%' }}
-                          primary={submission.quiz.title}
+                          primary={submission.quiz?.title || 'Unknown Quiz'}
                           secondary={`Score: ${submission.percentage}% • ${new Date(submission.submittedAt).toLocaleDateString()}`}
                         />
                       </ListItem>
