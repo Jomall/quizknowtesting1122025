@@ -14,6 +14,8 @@ import {
   Grid,
 } from '@mui/material';
 
+// Fixed: Added safe array handling to prevent map errors on undefined arrays
+
 const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnswer, onAnswerChange }) => {
   console.log('QuestionRenderer received question:', question);
 
