@@ -1062,14 +1062,18 @@ const InstructorDashboardPage = () => {
             scrollButtons="auto"
             allowScrollButtonsMobile
             sx={{
+              '& .MuiTabs-scroller': {
+                overflowX: 'auto !important',
+              },
               '& .MuiTabs-flexContainer': {
-                flexWrap: 'wrap',
+                minWidth: 'max-content',
               },
               '& .MuiTab-root': {
-                minWidth: 'auto',
+                minWidth: { xs: '120px', sm: 'auto' },
                 flexShrink: 0,
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 padding: { xs: '6px 8px', sm: '12px 16px' },
+                whiteSpace: 'nowrap',
               },
             }}
           >
