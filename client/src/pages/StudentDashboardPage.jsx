@@ -115,7 +115,7 @@ const StudentDashboardPage = () => {
       const validSubmitted = safeSubmitted.filter(s => s);
       const filteredSubmitted = validSubmitted.filter(s => s.quiz && s.quiz._id && s.quiz.title);
       setSubmittedQuizzes(filteredSubmitted);
-      setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz?._id).map(s => s.quiz._id.toString())));
+      setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz && s.quiz._id).map(s => s.quiz._id.toString())));
       setReceivedContent(safeContent);
       setSentRequests(safeSentReqs);
     } catch (error) {
