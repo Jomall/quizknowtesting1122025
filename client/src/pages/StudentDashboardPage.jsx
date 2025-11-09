@@ -97,8 +97,9 @@ const StudentDashboardPage = () => {
       setStats(statsData);
       setAvailableQuizzes(available);
       setPendingQuizzes(pending);
-      setSubmittedQuizzes(submitted);
-      setCompletedQuizIds(new Set(submitted.filter(s => s.quiz).map(s => s.quiz._id.toString())));
+      const filteredSubmitted = submitted.filter(s => s.quiz && s.quiz._id);
+      setSubmittedQuizzes(filteredSubmitted);
+      setCompletedQuizIds(new Set(filteredSubmitted.map(s => s.quiz._id.toString())));
       setReceivedContent(content);
       setSentRequests(sentReqs);
     } catch (error) {
@@ -423,7 +424,7 @@ const StudentDashboardPage = () => {
             <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
               <List>
                 {submittedQuizzes.length > 0 ? (
-                  submittedQuizzes.map((submission) => (
+                  submittedQuizzes.filter(submission => submission.quiz && submission.quiz.title).map((submission) => (
                     <React.Fragment key={submission._id}>
                       <ListItem
                         secondaryAction={
