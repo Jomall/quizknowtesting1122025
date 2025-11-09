@@ -48,6 +48,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
   };
 
   const renderQuestionType = () => {
+    console.log('renderQuestionType called for question type:', question.type);
     switch (question.type) {
       case 'multiple-choice':
         console.log('Multiple-choice question data:', {
