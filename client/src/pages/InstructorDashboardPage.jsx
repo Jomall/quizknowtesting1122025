@@ -1055,7 +1055,24 @@ const InstructorDashboardPage = () => {
 
       <Paper sx={{ mb: 3 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={activeTab} onChange={handleTabChange}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              '& .MuiTabs-flexContainer': {
+                flexWrap: 'wrap',
+              },
+              '& .MuiTab-root': {
+                minWidth: 'auto',
+                flexShrink: 0,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                padding: { xs: '6px 8px', sm: '12px 16px' },
+              },
+            }}
+          >
             <Tab label="Overview" />
             <Tab label="Student Progress" />
             <Tab label="Detailed View" />

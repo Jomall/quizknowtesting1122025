@@ -629,16 +629,34 @@ const AdminDashboardPage = () => {
         {/* Main Content */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="admin tabs">
-                <Tab label="Recent Users" />
-                <Tab label="Pending Approvals" />
-                <Tab label="System Overview" />
-                <Tab label="Instructor Management" />
-                <Tab label="Quiz Management" />
-                <Tab label="User Profiles" />
-              </Tabs>
-            </Box>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="admin tabs"
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              '& .MuiTabs-flexContainer': {
+                flexWrap: 'wrap',
+              },
+              '& .MuiTab-root': {
+                minWidth: 'auto',
+                flexShrink: 0,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                padding: { xs: '6px 8px', sm: '12px 16px' },
+              },
+            }}
+          >
+            <Tab label="Recent Users" />
+            <Tab label="Pending Approvals" />
+            <Tab label="System Overview" />
+            <Tab label="Instructor Management" />
+            <Tab label="Quiz Management" />
+            <Tab label="User Profiles" />
+          </Tabs>
+        </Box>
 
             {tabValue === 0 && (
               <Box sx={{ mt: 3 }}>
