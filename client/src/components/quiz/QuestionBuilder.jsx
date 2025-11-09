@@ -221,6 +221,16 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         const leftItems = currentQuestion.leftItems || ['', ''];
         const rightItems = currentQuestion.rightItems || ['', ''];
 
+        const handleRemoveLeftItem = (index) => {
+          const newItems = leftItems.filter((_, i) => i !== index);
+          handleQuestionChange('leftItems', newItems);
+        };
+
+        const handleRemoveRightItem = (index) => {
+          const newItems = rightItems.filter((_, i) => i !== index);
+          handleQuestionChange('rightItems', newItems);
+        };
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -233,25 +243,35 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
               <Grid item xs={6}>
                 <Typography variant="subtitle1">Terms (Left Side)</Typography>
                 {leftItems.map((item, index) => (
-                  <TextField
-                    key={index}
-                    fullWidth
-                    label={`Term ${index + 1}`}
-                    value={item}
-                    onChange={(e) => {
-                      const newItems = [...leftItems];
-                      newItems[index] = e.target.value;
-                      handleQuestionChange('leftItems', newItems);
-                    }}
-                    margin="normal"
-                    placeholder="Enter term"
-                  />
+                  <Box key={index} display="flex" alignItems="center" mb={1}>
+                    <TextField
+                      fullWidth
+                      label={`Term ${index + 1}`}
+                      value={item}
+                      onChange={(e) => {
+                        const newItems = [...leftItems];
+                        newItems[index] = e.target.value;
+                        handleQuestionChange('leftItems', newItems);
+                      }}
+                      margin="normal"
+                      placeholder="Enter term"
+                      size="small"
+                    />
+                    <IconButton
+                      onClick={() => handleRemoveLeftItem(index)}
+                      disabled={leftItems.length <= 2}
+                      size="small"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
                 ))}
                 <Button
                   startIcon={<Add />}
                   onClick={() => handleQuestionChange('leftItems', [...leftItems, ''])}
                   disabled={leftItems.length >= 6}
                   size="small"
+                  fullWidth
                 >
                   Add Term
                 </Button>
@@ -259,30 +279,43 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
               <Grid item xs={6}>
                 <Typography variant="subtitle1">Definitions (Right Side)</Typography>
                 {rightItems.map((item, index) => (
-                  <TextField
-                    key={index}
-                    fullWidth
-                    label={`Definition ${index + 1}`}
-                    value={item}
-                    onChange={(e) => {
-                      const newItems = [...rightItems];
-                      newItems[index] = e.target.value;
-                      handleQuestionChange('rightItems', newItems);
-                    }}
-                    margin="normal"
-                    placeholder="Enter definition"
-                  />
+                  <Box key={index} display="flex" alignItems="center" mb={1}>
+                    <TextField
+                      fullWidth
+                      label={`Definition ${index + 1}`}
+                      value={item}
+                      onChange={(e) => {
+                        const newItems = [...rightItems];
+                        newItems[index] = e.target.value;
+                        handleQuestionChange('rightItems', newItems);
+                      }}
+                      margin="normal"
+                      placeholder="Enter definition"
+                      size="small"
+                    />
+                    <IconButton
+                      onClick={() => handleRemoveRightItem(index)}
+                      disabled={rightItems.length <= 2}
+                      size="small"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
                 ))}
                 <Button
                   startIcon={<Add />}
                   onClick={() => handleQuestionChange('rightItems', [...rightItems, ''])}
                   disabled={rightItems.length >= 6}
                   size="small"
+                  fullWidth
                 >
                   Add Definition
                 </Button>
               </Grid>
             </Grid>
+            <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
+              Note: Ensure you have the same number of terms and definitions for proper matching.
+            </Typography>
           </Box>
         );
 
