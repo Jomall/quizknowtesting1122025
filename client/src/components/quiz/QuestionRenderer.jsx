@@ -29,14 +29,20 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
               value={currentAnswer || ''}
               onChange={(e) => handleAnswerChange(e.target.value)}
             >
-              {question.options.map((option, index) => (
-                <FormControlLabel
-                  key={option._id || index}
-                  value={option.text}
-                  control={<Radio />}
-                  label={option.text}
-                />
-              ))}
+              {question.options && question.options.length > 0 ? (
+                question.options.map((option, index) => (
+                  <FormControlLabel
+                    key={option._id || index}
+                    value={option.text}
+                    control={<Radio />}
+                    label={option.text}
+                  />
+                ))
+              ) : (
+                <Typography variant="body2" color="error">
+                  Options not available for this question.
+                </Typography>
+              )}
             </RadioGroup>
           </FormControl>
         );
@@ -64,23 +70,29 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           <FormControl component="fieldset">
             <FormLabel component="legend">{question.question}</FormLabel>
             <FormGroup>
-              {question.options.map((option, index) => (
-                <FormControlLabel
-                  key={option._id || index}
-                  control={
-                    <Checkbox
-                      checked={currentAnswer?.includes(option.text) || false}
-                      onChange={(e) => {
-                        const newAnswer = e.target.checked
-                          ? [...(currentAnswer || []), option.text]
-                          : (currentAnswer || []).filter(item => item !== option.text);
-                        handleAnswerChange(newAnswer);
-                      }}
-                    />
-                  }
-                  label={option.text}
-                />
-              ))}
+              {question.options && question.options.length > 0 ? (
+                question.options.map((option, index) => (
+                  <FormControlLabel
+                    key={option._id || index}
+                    control={
+                      <Checkbox
+                        checked={currentAnswer?.includes(option.text) || false}
+                        onChange={(e) => {
+                          const newAnswer = e.target.checked
+                            ? [...(currentAnswer || []), option.text]
+                            : (currentAnswer || []).filter(item => item !== option.text);
+                          handleAnswerChange(newAnswer);
+                        }}
+                      />
+                    }
+                    label={option.text}
+                  />
+                ))
+              ) : (
+                <Typography variant="body2" color="error">
+                  Options not available for this question.
+                </Typography>
+              )}
             </FormGroup>
           </FormControl>
         );
@@ -144,38 +156,54 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                 <Typography variant="subtitle1" gutterBottom>
                   Items to Match:
                 </Typography>
-                {question.leftItems.map((item, index) => (
-                  <Box key={index} mb={1}>
-                    <Chip label={item} />
-                  </Box>
-                ))}
+                {question.leftItems && question.leftItems.length > 0 ? (
+                  question.leftItems.map((item, index) => (
+                    <Box key={index} mb={1}>
+                      <Chip label={item} />
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="error">
+                    Left items not available.
+                  </Typography>
+                )}
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="subtitle1" gutterBottom>
                   Match with:
                 </Typography>
-                {question.rightItems.map((item, index) => (
-                  <Box key={index} mb={1}>
-                    <TextField
-                      select
-                      label={`Match ${item}`}
-                      value={currentAnswer?.[item] || ''}
-                      onChange={(e) => {
-                        const newAnswer = { ...(currentAnswer || {}), [item]: e.target.value };
-                        handleAnswerChange(newAnswer);
-                      }}
-                      SelectProps={{ native: true }}
-                      fullWidth
-                    >
-                      <option value="">Select match</option>
-                      {question.leftItems.map((leftItem, leftIndex) => (
-                        <option key={leftIndex} value={leftItem}>
-                          {leftItem}
-                        </option>
-                      ))}
-                    </TextField>
-                  </Box>
-                ))}
+                {question.rightItems && question.rightItems.length > 0 ? (
+                  question.rightItems.map((item, index) => (
+                    <Box key={index} mb={1}>
+                      <TextField
+                        select
+                        label={`Match ${item}`}
+                        value={currentAnswer?.[item] || ''}
+                        onChange={(e) => {
+                          const newAnswer = { ...(currentAnswer || {}), [item]: e.target.value };
+                          handleAnswerChange(newAnswer);
+                        }}
+                        SelectProps={{ native: true }}
+                        fullWidth
+                      >
+                        <option value="">Select match</option>
+                        {question.leftItems && question.leftItems.length > 0 ? (
+                          question.leftItems.map((leftItem, leftIndex) => (
+                            <option key={leftIndex} value={leftItem}>
+                              {leftItem}
+                            </option>
+                          ))
+                        ) : (
+                          <option disabled>No options available</option>
+                        )}
+                      </TextField>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="error">
+                    Right items not available.
+                  </Typography>
+                )}
               </Grid>
             </Grid>
           </Box>
@@ -190,21 +218,27 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
             <Typography variant="body2" color="textSecondary" gutterBottom>
               Drag and drop to reorder the items correctly
             </Typography>
-            {question.items.map((item, index) => (
-              <Box key={index} mb={1}>
-                <TextField
-                  type="number"
-                  label={`Position for: ${item}`}
-                  value={currentAnswer?.[item] || ''}
-                  onChange={(e) => {
-                    const newAnswer = { ...(currentAnswer || {}), [item]: parseInt(e.target.value) };
-                    handleAnswerChange(newAnswer);
-                  }}
-                  inputProps={{ min: 1, max: question.items.length }}
-                  fullWidth
-                />
-              </Box>
-            ))}
+            {question.items && question.items.length > 0 ? (
+              question.items.map((item, index) => (
+                <Box key={index} mb={1}>
+                  <TextField
+                    type="number"
+                    label={`Position for: ${item}`}
+                    value={currentAnswer?.[item] || ''}
+                    onChange={(e) => {
+                      const newAnswer = { ...(currentAnswer || {}), [item]: parseInt(e.target.value) };
+                      handleAnswerChange(newAnswer);
+                    }}
+                    inputProps={{ min: 1, max: question.items.length }}
+                    fullWidth
+                  />
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="error">
+                Items not available for ordering.
+              </Typography>
+            )}
           </Box>
         );
 
