@@ -209,7 +209,11 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
               fullWidth
               label="Correct Answers (comma-separated)"
               value={Array.isArray(currentQuestion.correctAnswer) ? currentQuestion.correctAnswer.join(', ') : (currentQuestion.correctAnswer || '')}
-              onChange={(e) => handleQuestionChange('correctAnswer', e.target.value.split(',').map(s => s.trim()))}
+              onChange={(e) => {
+                const value = e.target.value;
+                const parsed = value.split(',').map(s => s.trim()).filter(s => s);
+                handleQuestionChange('correctAnswer', parsed.length > 0 ? parsed : []);
+              }}
               margin="normal"
               helperText="Enter the correct options separated by commas (e.g., Option 1, Option 3)"
             />
