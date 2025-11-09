@@ -18,12 +18,26 @@ import {
 
 const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnswer, onAnswerChange }) => {
   console.log('QuestionRenderer received question:', question);
+  console.log('Question type:', question?.type);
+  console.log('Question properties:', Object.keys(question || {}));
 
   if (!question) {
+    console.error('QuestionRenderer: question prop is null or undefined');
     return (
       <Box>
         <Typography variant="body1" color="error">
           Question data is not available.
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (!question.type) {
+    console.error('QuestionRenderer: question.type is missing', question);
+    return (
+      <Box>
+        <Typography variant="body1" color="error">
+          Question type is not available.
         </Typography>
       </Box>
     );
