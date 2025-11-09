@@ -211,33 +211,34 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         console.log('Matching question data:', {
           leftItems: question.leftItems,
           rightItems: question.rightItems,
+          options: question.options,
+          correctAnswer: question.correctAnswer,
           leftItemsType: typeof question.leftItems,
           rightItemsType: typeof question.rightItems,
-          leftItemsIsArray: Array.isArray(question.leftItems),
-          rightItemsIsArray: Array.isArray(question.rightItems)
+          optionsType: typeof question.options,
+          correctAnswerType: typeof question.correctAnswer
         });
 
-        // Defensive checks: ensure arrays exist and are arrays
-        if (!question.leftItems || !Array.isArray(question.leftItems)) {
-          console.error('Matching question: leftItems is not an array or is undefined', question.leftItems);
-          return (
-            <Typography variant="body2" color="error">
-              Left items not available for this matching question.
-            </Typography>
-          );
-        }
-        if (!question.rightItems || !Array.isArray(question.rightItems)) {
-          console.error('Matching question: rightItems is not an array or is undefined', question.rightItems);
-          return (
-            <Typography variant="body2" color="error">
-              Right items not available for this matching question.
-            </Typography>
-          );
-        }
+        // Handle both new format (leftItems/rightItems) and old format (options/correctAnswer)
+        let leftItems = [];
+        let rightItems = [];
 
-        // Safe array access with defaults
-        const leftItems = question.leftItems;
-        const rightItems = question.rightItems;
+        if (question.leftItems && Array.isArray(question.leftItems) && question.rightItems && Array.isArray(question.rightItems)) {
+          // New format
+          leftItems = question.leftItems;
+          rightItems = question.rightItems;
+        } else if (question.options && Array.isArray(question.options)) {
+          // Old format - convert
+          leftItems = question.options.map(opt => opt.text || opt);
+          rightItems = question.correctAnswer && Array.isArray(question.correctAnswer) ? question.correctAnswer : [];
+        } else {
+          console.error('Matching question: No valid data format found', question);
+          return (
+            <Typography variant="body2" color="error">
+              Matching question data is not available.
+            </Typography>
+          );
+        }
 
         return (
           <Box>
