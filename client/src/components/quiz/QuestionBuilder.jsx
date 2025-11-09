@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DialogTitle,
   DialogContent,
@@ -33,6 +33,16 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
     explanation: '',
     isRequired: true,
   });
+
+  // Ensure correctAnswer is properly initialized for select-all questions
+  useEffect(() => {
+    if (currentQuestion.type === 'select-all' && !Array.isArray(currentQuestion.correctAnswer)) {
+      setCurrentQuestion(prev => ({
+        ...prev,
+        correctAnswer: []
+      }));
+    }
+  }, [currentQuestion.type, currentQuestion.correctAnswer]);
 
   const handleQuestionChange = (field, value) => {
     setCurrentQuestion(prev => ({
