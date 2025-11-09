@@ -96,11 +96,15 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                 value={currentQuestion.correctAnswer}
                 onChange={(e) => handleQuestionChange('correctAnswer', e.target.value)}
               >
-                {currentQuestion.options.map((option, index) => (
-                  <MenuItem key={index} value={option} disabled={!option.trim()}>
-                    {option || `Option ${index + 1}`}
-                  </MenuItem>
-                ))}
+                {currentQuestion.options && Array.isArray(currentQuestion.options) ? (
+                  currentQuestion.options.map((option, index) => (
+                    <MenuItem key={index} value={option} disabled={!option.trim()}>
+                      {option || `Option ${index + 1}`}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No options available</MenuItem>
+                )}
               </Select>
             </FormControl>
           </Box>
