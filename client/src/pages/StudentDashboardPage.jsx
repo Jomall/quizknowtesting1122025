@@ -97,7 +97,7 @@ const StudentDashboardPage = () => {
       setStats(statsData);
       setAvailableQuizzes(available);
       setPendingQuizzes(pending);
-      const filteredSubmitted = submitted.filter(s => s.quiz && s.quiz._id);
+      const filteredSubmitted = submitted.filter(s => s && s.quiz && s.quiz._id && s.quiz.title);
       setSubmittedQuizzes(filteredSubmitted);
       setCompletedQuizIds(new Set(filteredSubmitted.map(s => s.quiz._id.toString())));
       setReceivedContent(content);
