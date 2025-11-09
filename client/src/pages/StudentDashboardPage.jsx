@@ -98,7 +98,7 @@ const StudentDashboardPage = () => {
       setAvailableQuizzes(available);
       setPendingQuizzes(pending);
       setSubmittedQuizzes(submitted);
-      setCompletedQuizIds(new Set(submitted.map(s => s.quiz._id.toString())));
+      setCompletedQuizIds(new Set(submitted.filter(s => s.quiz).map(s => s.quiz._id.toString())));
       setReceivedContent(content);
       setSentRequests(sentReqs);
     } catch (error) {
