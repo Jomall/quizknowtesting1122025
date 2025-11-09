@@ -67,7 +67,12 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
   };
 
   const handleSave = () => {
-    onSave(currentQuestion);
+    // For matching questions, set correctAnswer to rightItems for backward compatibility
+    let questionToSave = { ...currentQuestion };
+    if (currentQuestion.type === 'matching') {
+      questionToSave.correctAnswer = currentQuestion.rightItems || [];
+    }
+    onSave(questionToSave);
   };
 
   const renderQuestionType = () => {
