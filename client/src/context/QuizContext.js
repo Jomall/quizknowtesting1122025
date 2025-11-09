@@ -264,14 +264,13 @@ export const QuizProvider = ({ children }) => {
   const getSubmittedQuizzes = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Fetching submitted quizzes...');
       const response = await axios.get(`${API_BASE_URL}/submissions/my-submissions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Submitted quizzes response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching submitted quizzes:', error);
+      console.error('Frontend: Error fetching submitted quizzes:', error);
+      console.error('Frontend: Error response:', error.response?.data);
       return [];
     }
   };
