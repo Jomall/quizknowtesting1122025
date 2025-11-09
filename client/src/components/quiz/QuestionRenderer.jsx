@@ -223,15 +223,26 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         let leftItems = [];
         let rightItems = [];
 
-        if (question.leftItems && Array.isArray(question.leftItems) && question.rightItems && Array.isArray(question.rightItems)) {
-          // New format
+        // Safely extract arrays
+        if (question.leftItems && Array.isArray(question.leftItems)) {
           leftItems = question.leftItems;
+        }
+        if (question.rightItems && Array.isArray(question.rightItems)) {
           rightItems = question.rightItems;
-        } else if (question.options && Array.isArray(question.options)) {
-          // Old format - convert
-          leftItems = question.options.map(opt => opt.text || opt);
+        }
+
+        // If no leftItems from new format, try old format
+        if (leftItems.length === 0 && question.options && Array.isArray(question.options)) {
+          leftItems = question.options.map(opt => opt ? (opt.text || opt) : '');
           rightItems = question.correctAnswer && Array.isArray(question.correctAnswer) ? question.correctAnswer : [];
-        } else {
+        }
+
+        // Ensure arrays are valid
+        if (!Array.isArray(leftItems)) leftItems = [];
+        if (!Array.isArray(rightItems)) rightItems = [];
+
+        // If still no data, show error
+        if (leftItems.length === 0 && rightItems.length === 0) {
           console.error('Matching question: No valid data format found', question);
           return (
             <Typography variant="body2" color="error">
