@@ -166,6 +166,11 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           leftItemsIsArray: Array.isArray(question.leftItems),
           rightItemsIsArray: Array.isArray(question.rightItems)
         });
+
+        // Safe array access with defaults
+        const leftItems = Array.isArray(question.leftItems) ? question.leftItems : [];
+        const rightItems = Array.isArray(question.rightItems) ? question.rightItems : [];
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -176,8 +181,8 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                 <Typography variant="subtitle1" gutterBottom>
                   Items to Match:
                 </Typography>
-                {Array.isArray(question.leftItems) && question.leftItems.length > 0 ? (
-                  question.leftItems.map((item, index) => (
+                {leftItems.length > 0 ? (
+                  leftItems.map((item, index) => (
                     <Box key={index} mb={1}>
                       <Chip label={item} />
                     </Box>
@@ -192,8 +197,8 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                 <Typography variant="subtitle1" gutterBottom>
                   Match with:
                 </Typography>
-                {Array.isArray(question.rightItems) && question.rightItems.length > 0 ? (
-                  question.rightItems.map((item, index) => (
+                {rightItems.length > 0 ? (
+                  rightItems.map((item, index) => (
                     <Box key={index} mb={1}>
                       <TextField
                         select
@@ -207,8 +212,8 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                         fullWidth
                       >
                         <option value="">Select match</option>
-                        {Array.isArray(question.leftItems) && question.leftItems.length > 0 ? (
-                          question.leftItems.map((leftItem, leftIndex) => (
+                        {leftItems.length > 0 ? (
+                          leftItems.map((leftItem, leftIndex) => (
                             <option key={leftIndex} value={leftItem}>
                               {leftItem}
                             </option>
