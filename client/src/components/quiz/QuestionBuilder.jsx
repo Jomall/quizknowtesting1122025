@@ -213,41 +213,70 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         );
 
       case 'matching':
+        // Initialize leftItems and rightItems if they don't exist
+        const leftItems = currentQuestion.leftItems || ['', ''];
+        const rightItems = currentQuestion.rightItems || ['', ''];
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
               Matching Pairs
             </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Create pairs of terms and their definitions. Students will match them correctly.
+            </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <Typography variant="subtitle1">Terms</Typography>
-                {currentQuestion.options.map((option, index) => (
+                <Typography variant="subtitle1">Terms (Left Side)</Typography>
+                {leftItems.map((item, index) => (
                   <TextField
                     key={index}
                     fullWidth
                     label={`Term ${index + 1}`}
-                    value={option}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    value={item}
+                    onChange={(e) => {
+                      const newItems = [...leftItems];
+                      newItems[index] = e.target.value;
+                      handleQuestionChange('leftItems', newItems);
+                    }}
                     margin="normal"
+                    placeholder="Enter term"
                   />
                 ))}
+                <Button
+                  startIcon={<Add />}
+                  onClick={() => handleQuestionChange('leftItems', [...leftItems, ''])}
+                  disabled={leftItems.length >= 6}
+                  size="small"
+                >
+                  Add Term
+                </Button>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle1">Definitions</Typography>
-                {currentQuestion.correctAnswer.map((answer, index) => (
+                <Typography variant="subtitle1">Definitions (Right Side)</Typography>
+                {rightItems.map((item, index) => (
                   <TextField
                     key={index}
                     fullWidth
                     label={`Definition ${index + 1}`}
-                    value={answer}
+                    value={item}
                     onChange={(e) => {
-                      const newAnswers = [...currentQuestion.correctAnswer];
-                      newAnswers[index] = e.target.value;
-                      handleQuestionChange('correctAnswer', newAnswers);
+                      const newItems = [...rightItems];
+                      newItems[index] = e.target.value;
+                      handleQuestionChange('rightItems', newItems);
                     }}
                     margin="normal"
+                    placeholder="Enter definition"
                   />
                 ))}
+                <Button
+                  startIcon={<Add />}
+                  onClick={() => handleQuestionChange('rightItems', [...rightItems, ''])}
+                  disabled={rightItems.length >= 6}
+                  size="small"
+                >
+                  Add Definition
+                </Button>
               </Grid>
             </Grid>
           </Box>
