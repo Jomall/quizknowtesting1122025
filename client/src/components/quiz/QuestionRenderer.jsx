@@ -158,6 +158,14 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         );
 
       case 'matching':
+        console.log('Matching question data:', {
+          leftItems: question.leftItems,
+          rightItems: question.rightItems,
+          leftItemsType: typeof question.leftItems,
+          rightItemsType: typeof question.rightItems,
+          leftItemsIsArray: Array.isArray(question.leftItems),
+          rightItemsIsArray: Array.isArray(question.rightItems)
+        });
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
