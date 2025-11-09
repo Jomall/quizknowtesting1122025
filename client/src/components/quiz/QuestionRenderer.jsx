@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 
 const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnswer, onAnswerChange }) => {
+  console.log('QuestionRenderer received question:', question);
+
   if (!question) {
     return (
       <Box>
