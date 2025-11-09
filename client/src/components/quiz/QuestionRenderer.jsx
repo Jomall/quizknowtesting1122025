@@ -235,6 +235,15 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         );
 
       case 'ordering':
+        console.log('Ordering question data:', {
+          items: question.items,
+          itemsType: typeof question.items,
+          itemsIsArray: Array.isArray(question.items)
+        });
+
+        // Safe array access with defaults
+        const items = Array.isArray(question.items) ? question.items : [];
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -243,8 +252,8 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
             <Typography variant="body2" color="textSecondary" gutterBottom>
               Drag and drop to reorder the items correctly
             </Typography>
-            {Array.isArray(question.items) && question.items.length > 0 ? (
-              question.items.map((item, index) => (
+            {items.length > 0 ? (
+              items.map((item, index) => (
                 <Box key={index} mb={1}>
                   <TextField
                     type="number"
@@ -254,7 +263,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
                       const newAnswer = { ...(currentAnswer || {}), [item]: parseInt(e.target.value) };
                       handleAnswerChange(newAnswer);
                     }}
-                    inputProps={{ min: 1, max: question.items.length }}
+                    inputProps={{ min: 1, max: items.length }}
                     fullWidth
                   />
                 </Box>
