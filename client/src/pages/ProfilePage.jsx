@@ -229,7 +229,27 @@ const ProfilePage = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTabs-scroller': {
+              overflowX: 'auto !important',
+            },
+            '& .MuiTabs-flexContainer': {
+              minWidth: 'max-content',
+              gap: 0,
+            },
+            '& .MuiTab-root': {
+              minWidth: { xs: 'auto', sm: 'auto' },
+              flexShrink: 0,
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              padding: { xs: '6px 8px', sm: '12px 16px' },
+              whiteSpace: 'normal',
+            },
+          }}
         >
           <Tab label="Quiz History" />
           <Tab label="Created Quizzes" />

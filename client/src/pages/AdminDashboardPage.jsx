@@ -14,6 +14,7 @@ import {
   ListItemText,
   ListItemAvatar,
   Divider,
+ 
   Tab,
   Tabs,
   Dialog,
@@ -643,13 +644,14 @@ const AdminDashboardPage = () => {
               },
               '& .MuiTabs-flexContainer': {
                 minWidth: 'max-content',
+                gap: 0,
               },
               '& .MuiTab-root': {
-                minWidth: { xs: '120px', sm: 'auto' },
+                minWidth: { xs: 'auto', sm: 'auto' },
                 flexShrink: 0,
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 padding: { xs: '6px 8px', sm: '12px 16px' },
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
               },
             }}
           >

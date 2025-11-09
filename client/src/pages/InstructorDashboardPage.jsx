@@ -971,7 +971,16 @@ const InstructorDashboardPage = () => {
                         </ListItemAvatar>
                         <ListItemText
                           primary={quiz.title}
-                          secondary={`${quiz.questions?.length || 0} questions • ${new Date(quiz.createdAt).toLocaleDateString()}`}
+                          secondary={
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                                {quiz.questions?.length || 0} questions
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                                {new Date(quiz.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          }
                         />
                       </ListItem>
                       <Divider />
@@ -1064,16 +1073,28 @@ const InstructorDashboardPage = () => {
             sx={{
               '& .MuiTabs-scroller': {
                 overflowX: 'auto !important',
+                scrollbarWidth: 'thin',
+                '&::-webkit-scrollbar': {
+                  height: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'rgba(0,0,0,0.2)',
+                  borderRadius: '2px',
+                },
               },
               '& .MuiTabs-flexContainer': {
                 minWidth: 'max-content',
+                gap: 0,
               },
               '& .MuiTab-root': {
-                minWidth: { xs: '120px', sm: 'auto' },
+                minWidth: { xs: 'auto', sm: 'auto' },
                 flexShrink: 0,
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 padding: { xs: '6px 8px', sm: '12px 16px' },
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
               },
             }}
           >
