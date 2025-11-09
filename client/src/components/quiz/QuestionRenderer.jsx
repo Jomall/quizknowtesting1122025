@@ -111,8 +111,18 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           questionText: question.question
         });
 
+        // Defensive check: ensure question.options exists and is an array
+        if (!question.options || !Array.isArray(question.options)) {
+          console.error('Select-all question: options is not an array or is undefined', question.options);
+          return (
+            <Typography variant="body2" color="error">
+              Options not available for this select-all question.
+            </Typography>
+          );
+        }
+
         // Safe array access with defaults
-        const selectAllOptions = Array.isArray(question.options) ? question.options : [];
+        const selectAllOptions = question.options;
         console.log('selectAllOptions array:', selectAllOptions);
 
         return (
@@ -282,8 +292,18 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           questionText: question.question
         });
 
+        // Defensive check: ensure question.items exists and is an array
+        if (!question.items || !Array.isArray(question.items)) {
+          console.error('Ordering question: items is not an array or is undefined', question.items);
+          return (
+            <Typography variant="body2" color="error">
+              Items not available for this ordering question.
+            </Typography>
+          );
+        }
+
         // Safe array access with defaults
-        const items = Array.isArray(question.items) ? question.items : [];
+        const items = question.items;
         console.log('ordering items array:', items);
 
         return (
