@@ -93,18 +93,47 @@ const StudentDashboardPage = () => {
         fetchReceivedContent(),
         fetchSentRequests(),
       ]);
-      setRecentQuizzes(quizzes.filter(quiz => quiz && quiz.title));
-      setStats(statsData);
-      setAvailableQuizzes(available);
-      setPendingQuizzes(pending);
-      const validSubmitted = submitted.filter(s => s);
+
+      // Ensure data is in expected format
+      const safeQuizzes = Array.isArray(quizzes) ? quizzes : [];
+      const safeStats = statsData && typeof statsData === 'object' ? statsData : {
+        totalQuizzes: 0,
+        completedQuizzes: 0,
+        averageScore: 0,
+        totalTime: 0,
+      };
+      const safeAvailable = Array.isArray(available) ? available : [];
+      const safePending = Array.isArray(pending) ? pending : [];
+      const safeSubmitted = Array.isArray(submitted) ? submitted : [];
+      const safeContent = Array.isArray(content) ? content : [];
+      const safeSentReqs = Array.isArray(sentReqs) ? sentReqs : [];
+
+      setRecentQuizzes(safeQuizzes.filter(quiz => quiz && quiz.title));
+      setStats(safeStats);
+      setAvailableQuizzes(safeAvailable);
+      setPendingQuizzes(safePending);
+      const validSubmitted = safeSubmitted.filter(s => s);
       const filteredSubmitted = validSubmitted.filter(s => s.quiz && s.quiz._id && s.quiz.title);
       setSubmittedQuizzes(filteredSubmitted);
       setCompletedQuizIds(new Set(filteredSubmitted.filter(s => s.quiz?._id).map(s => s.quiz._id.toString())));
-      setReceivedContent(content);
-      setSentRequests(sentReqs);
+      setReceivedContent(safeContent);
+      setSentRequests(safeSentReqs);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      // Set safe defaults on error
+      setRecentQuizzes([]);
+      setStats({
+        totalQuizzes: 0,
+        completedQuizzes: 0,
+        averageScore: 0,
+        totalTime: 0,
+      });
+      setAvailableQuizzes([]);
+      setPendingQuizzes([]);
+      setSubmittedQuizzes([]);
+      setCompletedQuizIds(new Set());
+      setReceivedContent([]);
+      setSentRequests([]);
     }
   }, [getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes, fetchReceivedContent, fetchSentRequests]);
 
