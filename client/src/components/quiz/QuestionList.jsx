@@ -136,6 +136,24 @@ const QuestionList = ({ questions, onChange }) => {
             </Typography>
           </Box>
         )}
+
+        {question.type === 'matching' && question.leftItems && question.rightItems && (
+          <Box sx={{ ml: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+              Matching Pairs:
+            </Typography>
+            {question.leftItems.map((leftItem, idx) => (
+              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
+                <Typography variant="body2" sx={{ minWidth: '150px' }}>
+                  {leftItem}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'success.main' }}>
+                  → {question.rightItems[idx] || ''}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
     );
   };
