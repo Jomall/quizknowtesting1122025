@@ -34,6 +34,7 @@ const ContentViewPage = () => {
   const [feedbackComments, setFeedbackComments] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
   const navigate = useNavigate();
   const { contentId } = useParams();
 
@@ -44,6 +45,22 @@ const ContentViewPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setContent(data);
+
+      // Fetch video blob for video content
+      if (data.type === 'video' && data.filePath) {
+        try {
+          const videoResponse = await fetch(`${API_BASE_URL}/content/${contentId}/view-file`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (videoResponse.ok) {
+            const blob = await videoResponse.blob();
+            const videoObjectUrl = URL.createObjectURL(blob);
+            setVideoUrl(videoObjectUrl);
+          }
+        } catch (videoError) {
+          console.error('Error loading video:', videoError);
+        }
+      }
 
       // Mark content as viewed
       await axios.post(`${API_BASE_URL}/content/${contentId}/view`, {}, {
@@ -225,6 +242,18 @@ const ContentViewPage = () => {
             <Typography variant="h6" gutterBottom>
               File
             </Typography>
+            {content.type === 'video' && (
+              <Box sx={{ mb: 2 }}>
+                <video
+                  controls
+                  style={{ width: '100%', maxWidth: '600px', height: 'auto' }}
+                  src={videoUrl}
+                  preload="metadata"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </Box>
+            )}
             <Button
               variant="contained"
               startIcon={<DownloadIcon />}

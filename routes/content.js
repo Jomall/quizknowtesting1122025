@@ -165,6 +165,38 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// View content file inline (for instructors and assigned students)
+router.get('/:id/view-file', auth, async (req, res) => {
+  try {
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({ message: 'Content not found' });
+    }
+
+    // Allow access if user is instructor or in allowedStudents
+    const isInstructor = content.instructor._id.toString() === req.user.id;
+    const isAllowedStudent = content.allowedStudents.includes(req.user.id);
+
+    if (!isInstructor && !isAllowedStudent) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (!content.filePath) {
+      return res.status(400).json({ message: 'No file to view' });
+    }
+
+    // Set appropriate headers for inline viewing
+    res.setHeader('Content-Type', content.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'inline');
+
+    // Send the file
+    res.sendFile(content.filePath);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Download content file (for instructors and assigned students)
 router.get('/:id/download', auth, async (req, res) => {
   try {
