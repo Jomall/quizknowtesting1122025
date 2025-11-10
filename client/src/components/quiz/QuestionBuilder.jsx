@@ -86,6 +86,8 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
           newQuestion.correctAnswer = [];
         } else if (value === 'matching') {
           newQuestion.correctAnswer = newQuestion.rightItems || [];
+          newQuestion.leftItems = newQuestion.leftItems || ['', ''];
+          newQuestion.rightItems = newQuestion.rightItems || ['', ''];
         } else {
           newQuestion.correctAnswer = '';
         }
