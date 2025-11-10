@@ -107,13 +107,13 @@ app.use('/uploads', express.static('uploads'));
 app.set('upload', upload);
 
 // Import routes synchronously for Vercel serverless
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const quizRoutes = require('./routes/quizzes');
-const quizDetailedRoutes = require('./routes/quiz');
-const contentRoutes = require('./routes/content');
-const connectionRoutes = require('./routes/connections');
-const submissionRoutes = require('./routes/submissions');
+const authRoutes = require('../routes/auth');
+const userRoutes = require('../routes/users');
+const quizRoutes = require('../routes/quizzes');
+const quizDetailedRoutes = require('../routes/quiz');
+const contentRoutes = require('../routes/content');
+const connectionRoutes = require('../routes/connections');
+const submissionRoutes = require('../routes/submissions');
 
 // Routes - mounted synchronously
 app.use('/api/auth', authRoutes);
@@ -150,7 +150,7 @@ async function initializeApp() {
   await connectDB();
 
   // Ensure indexes are created
-  const User = require('./models/User');
+  const User = require('../models/User');
   await User.syncIndexes();
 
   // Socket.io for real-time notifications (only if not in Vercel)
