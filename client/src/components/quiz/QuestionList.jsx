@@ -140,7 +140,7 @@ const QuestionList = ({ questions, onChange }) => {
         {question.type === 'matching' && Array.isArray(question.leftItems) && Array.isArray(question.rightItems) && (
           <Box sx={{ ml: 2 }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Matching Pairs:
+              Pattern Matching Pairs:
             </Typography>
             {question.leftItems.map((leftItem, idx) => (
               <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>

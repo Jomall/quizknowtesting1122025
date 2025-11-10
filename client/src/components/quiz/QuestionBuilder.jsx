@@ -298,19 +298,19 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Matching Pairs
+              Pattern Matching Pairs
             </Typography>
             <Typography variant="body2" color="textSecondary" gutterBottom>
-              Create pairs of terms and their definitions. Students will match them correctly.
+              Create pairs of patterns and their matches. Students will match patterns to their correct counterparts.
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <Typography variant="subtitle1">Terms (Left Side)</Typography>
+                <Typography variant="subtitle1">Patterns (Left Side)</Typography>
                 {leftItems.map((item, index) => (
                   <Box key={index} display="flex" alignItems="center" mb={1}>
                     <TextField
                       fullWidth
-                      label={`Term ${index + 1}`}
+                      label={`Pattern ${index + 1}`}
                       value={item}
                       onChange={(e) => {
                         const newItems = [...leftItems];
@@ -318,7 +318,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                         handleQuestionChange('leftItems', newItems);
                       }}
                       margin="normal"
-                      placeholder="Enter term"
+                      placeholder="Enter pattern (e.g., term, concept, or visual pattern)"
                       size="small"
                     />
                     <IconButton
@@ -337,16 +337,16 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                   size="small"
                   fullWidth
                 >
-                  Add Term
+                  Add Pattern
                 </Button>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="subtitle1">Definitions (Right Side)</Typography>
+                <Typography variant="subtitle1">Matches (Right Side)</Typography>
                 {rightItems.map((item, index) => (
                   <Box key={index} display="flex" alignItems="center" mb={1}>
                     <TextField
                       fullWidth
-                      label={`Definition ${index + 1}`}
+                      label={`Match ${index + 1}`}
                       value={item}
                       onChange={(e) => {
                         const newItems = [...rightItems];
@@ -354,7 +354,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                         handleQuestionChange('rightItems', newItems);
                       }}
                       margin="normal"
-                      placeholder="Enter definition"
+                      placeholder="Enter corresponding match (e.g., definition, answer, or pattern match)"
                       size="small"
                     />
                     <IconButton
@@ -373,12 +373,12 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                   size="small"
                   fullWidth
                 >
-                  Add Definition
+                  Add Match
                 </Button>
               </Grid>
             </Grid>
             <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-              Note: Ensure you have the same number of terms and definitions for proper matching.
+              Note: Ensure you have the same number of patterns and matches for proper pattern matching.
             </Typography>
           </Box>
         );
