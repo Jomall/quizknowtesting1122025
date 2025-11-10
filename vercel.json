@@ -2,8 +2,7 @@
   "version": 2,
   "functions": {
     "api/server.js": {
-      "maxDuration": 30,
-      "maxBodySize": "50mb"
+      "maxDuration": 30
     }
   },
   "routes": [
