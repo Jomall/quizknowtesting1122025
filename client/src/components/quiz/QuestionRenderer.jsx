@@ -234,7 +234,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         // If no leftItems from new format, try old format
         if (leftItems.length === 0 && question.options && Array.isArray(question.options)) {
           leftItems = question.options.map(opt => opt ? (opt.text || opt) : '');
-          rightItems = question.correctAnswer && Array.isArray(question.correctAnswer) ? question.correctAnswer : [];
+          rightItems = Array.isArray(question.correctAnswer) ? question.correctAnswer : [];
         }
 
         // Ensure arrays are valid
