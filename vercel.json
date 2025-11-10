@@ -3,7 +3,9 @@
   "functions": {
     "api/server.js": {
       "maxDuration": 30,
-      "maxLambdaSize": "50mb"
+      "bodyParser": {
+        "sizeLimit": "50mb"
+      }
     }
   },
   "routes": [
