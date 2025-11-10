@@ -381,6 +381,53 @@ router.post('/:id/feedback', auth, authorize('student'), async (req, res) => {
   }
 });
 
+// Download content file (students and instructors)
+router.get('/:id/download', auth, async (req, res) => {
+  try {
+    const content = await Content.findById(req.params.id);
+
+    if (!content) {
+      return res.status(404).json({ message: 'Content not found' });
+    }
+
+    // Check if user has access to this content
+    const hasAccess = content.isPublic ||
+      content.instructor.toString() === req.user.id ||
+      (content.allowedStudents && content.allowedStudents.includes(req.user.id));
+
+    if (!hasAccess) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (!content.filePath) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    // Check if file exists
+    const fs = require('fs');
+    const path = require('path');
+
+    if (!fs.existsSync(content.filePath)) {
+      return res.status(404).json({ message: 'File not found on server' });
+    }
+
+    // Set appropriate headers for download
+    res.setHeader('Content-Disposition', `attachment; filename="${content.fileName}"`);
+    res.setHeader('Content-Type', content.mimeType || 'application/octet-stream');
+
+    // Stream the file
+    const fileStream = fs.createReadStream(content.filePath);
+    fileStream.pipe(res);
+
+    fileStream.on('error', (error) => {
+      console.error('Error streaming file:', error);
+      res.status(500).json({ message: 'Error downloading file' });
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get student progress for instructor
 router.get('/progress/students', auth, authorize('instructor'), checkApproved, async (req, res) => {
   try {
