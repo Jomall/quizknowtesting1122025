@@ -12,19 +12,15 @@
     },
     {
       "src": "/static/(.*)",
-      "dest": "/client/build/static/$1"
+      "dest": "/static/$1"
     },
     {
-      "src": "/manifest.json",
-      "dest": "/client/build/manifest.json"
-    },
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg))",
-      "dest": "/client/build/$1"
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|json))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "dest": "/index.html"
     }
   ],
   "outputDirectory": "client/build",
