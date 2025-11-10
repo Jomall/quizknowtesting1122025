@@ -24,15 +24,31 @@ import {
 } from '@mui/icons-material';
 
 const QuestionBuilder = ({ question, onSave, onCancel }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(question || {
-    type: 'multiple-choice',
-    question: '',
-    options: ['', ''],
-    correctAnswer: '',
-    points: 1,
-    explanation: '',
-    isRequired: true,
-  });
+  const getInitialQuestion = (question) => {
+    if (question) {
+      // Ensure correctAnswer is properly initialized for existing questions
+      let correctAnswer = question.correctAnswer;
+      if (question.type === 'select-all' && !Array.isArray(correctAnswer)) {
+        correctAnswer = [];
+      } else if (question.type === 'matching' && !Array.isArray(correctAnswer)) {
+        correctAnswer = question.rightItems || [];
+      } else if (!correctAnswer) {
+        correctAnswer = '';
+      }
+      return { ...question, correctAnswer };
+    }
+    return {
+      type: 'multiple-choice',
+      question: '',
+      options: ['', ''],
+      correctAnswer: '',
+      points: 1,
+      explanation: '',
+      isRequired: true,
+    };
+  };
+
+  const [currentQuestion, setCurrentQuestion] = useState(() => getInitialQuestion(question));
 
   // Ensure correctAnswer is properly initialized for select-all and matching questions
   useEffect(() => {
