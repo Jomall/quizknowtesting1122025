@@ -11,6 +11,14 @@
       "dest": "/api/server.js"
     },
     {
+      "src": "/static/(.*)",
+      "dest": "/client/build/static/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|json))",
+      "dest": "/client/build/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/client/build/index.html"
     }
