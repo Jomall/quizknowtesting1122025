@@ -30,8 +30,12 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
       let correctAnswer = question.correctAnswer;
       if (question.type === 'select-all' && !Array.isArray(correctAnswer)) {
         correctAnswer = [];
-      } else if (question.type === 'matching' && !Array.isArray(correctAnswer)) {
-        correctAnswer = question.rightItems || [];
+      } else if (question.type === 'matching') {
+        // Initialize leftItems and rightItems for matching questions
+        const leftItems = question.leftItems || question.options || ['', ''];
+        const rightItems = question.rightItems || (Array.isArray(correctAnswer) ? correctAnswer : ['', '']);
+        correctAnswer = rightItems;
+        return { ...question, correctAnswer, leftItems, rightItems };
       } else if (!correctAnswer) {
         correctAnswer = '';
       }

@@ -78,7 +78,8 @@ const CreateQuizPage = () => {
             question.options = q.options.map(opt => opt.text);
             question.correctAnswer = q.options.filter(opt => opt.isCorrect).map(opt => opt.text);
           } else if (q.type === 'matching') {
-            question.options = q.options.map(opt => opt.text);
+            question.leftItems = q.options.map(opt => opt.text);
+            question.rightItems = q.options.map(opt => opt.explanation);
             question.correctAnswer = q.options.map(opt => opt.explanation);
           } else if (q.type === 'ordering') {
             question.options = q.options.map(opt => opt.text);
@@ -182,13 +183,15 @@ const CreateQuizPage = () => {
               }))
             };
           } else if (q.type === 'matching') {
-            // For matching, options are terms, correctAnswer are definitions
+            // For matching, leftItems are terms, rightItems are definitions
+            const leftItems = q.leftItems || q.options || [];
+            const rightItems = q.rightItems || (Array.isArray(q.correctAnswer) ? q.correctAnswer : []);
             return {
               ...cleanQuestion,
-              options: (q.options || []).map((term, index) => ({
+              options: leftItems.map((term, index) => ({
                 text: term,
                 isCorrect: true, // All terms are correct in matching
-                explanation: q.correctAnswer[index] || ''
+                explanation: rightItems[index] || ''
               }))
             };
           } else if (q.type === 'ordering') {
