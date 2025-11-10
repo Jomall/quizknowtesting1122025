@@ -34,7 +34,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
     isRequired: true,
   });
 
-  // Ensure correctAnswer is properly initialized for select-all questions
+  // Ensure correctAnswer is properly initialized for select-all and matching questions
   useEffect(() => {
     if (currentQuestion.type === 'select-all' && !Array.isArray(currentQuestion.correctAnswer)) {
       setCurrentQuestion(prev => ({
@@ -42,7 +42,13 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         correctAnswer: []
       }));
     }
-  }, [currentQuestion.type, currentQuestion.correctAnswer]);
+    if (currentQuestion.type === 'matching' && !Array.isArray(currentQuestion.correctAnswer)) {
+      setCurrentQuestion(prev => ({
+        ...prev,
+        correctAnswer: currentQuestion.rightItems || []
+      }));
+    }
+  }, [currentQuestion.type, currentQuestion.correctAnswer, currentQuestion.rightItems]);
 
   const handleQuestionChange = (field, value) => {
     setCurrentQuestion(prev => ({
