@@ -50,6 +50,11 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
 
   const [currentQuestion, setCurrentQuestion] = useState(() => getInitialQuestion(question));
 
+  // Update state when question prop changes (for editing different questions)
+  useEffect(() => {
+    setCurrentQuestion(getInitialQuestion(question));
+  }, [question]);
+
   // Ensure correctAnswer is properly initialized for select-all and matching questions
   useEffect(() => {
     if (currentQuestion.type === 'select-all' && !Array.isArray(currentQuestion.correctAnswer)) {
