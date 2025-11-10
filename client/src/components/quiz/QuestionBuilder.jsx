@@ -280,8 +280,8 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
 
       case 'matching':
         // Initialize leftItems and rightItems if they don't exist
-        const leftItems = currentQuestion.leftItems || ['', ''];
-        const rightItems = currentQuestion.rightItems || ['', ''];
+        const leftItems = Array.isArray(currentQuestion.leftItems) ? currentQuestion.leftItems : ['', ''];
+        const rightItems = Array.isArray(currentQuestion.rightItems) ? currentQuestion.rightItems : ['', ''];
 
         const handleRemoveLeftItem = (index) => {
           const newItems = leftItems.filter((_, i) => i !== index);
