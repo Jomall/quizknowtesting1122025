@@ -3,9 +3,7 @@
   "functions": {
     "api/server.js": {
       "maxDuration": 30,
-      "bodyParser": {
-        "sizeLimit": "50mb"
-      }
+      "maxBodySize": "50mb"
     }
   },
   "routes": [
