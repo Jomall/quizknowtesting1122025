@@ -29,7 +29,6 @@ import { useNavigate } from 'react-router-dom';
 
 import StudentSelector from '../components/common/StudentSelector';
 import axios from 'axios';
-import { put } from '@vercel/blob';
 
 const CreateContentPage = () => {
   const [contentData, setContentData] = useState({
@@ -138,22 +137,14 @@ const CreateContentPage = () => {
           },
         });
       } else {
-        // Upload file to Vercel Blob first
-        const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
-          access: 'public',
-        });
-
-        // Then send metadata to backend
+        // Upload file to server (fallback to original method)
         const formData = new FormData();
         formData.append('title', contentData.title);
         formData.append('type', contentData.type);
         formData.append('description', contentData.description);
         formData.append('tags', JSON.stringify(contentData.tags));
         formData.append('allowedStudents', JSON.stringify(selectedStudents));
-        formData.append('fileUrl', blob.url);
-        formData.append('fileName', selectedFile.name);
-        formData.append('fileSize', selectedFile.size.toString());
-        formData.append('mimeType', selectedFile.type);
+        formData.append('file', selectedFile);
 
         await axios.post('/api/content/upload', formData, {
           headers: {
