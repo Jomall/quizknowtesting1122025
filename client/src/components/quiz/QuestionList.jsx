@@ -137,7 +137,7 @@ const QuestionList = ({ questions, onChange }) => {
           </Box>
         )}
 
-        {question.type === 'matching' && question.leftItems && question.rightItems && (
+        {question.type === 'matching' && Array.isArray(question.leftItems) && Array.isArray(question.rightItems) && (
           <Box sx={{ ml: 2 }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
               Matching Pairs:
