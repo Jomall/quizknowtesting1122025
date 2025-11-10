@@ -51,10 +51,22 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
   }, [currentQuestion.type, currentQuestion.correctAnswer, currentQuestion.rightItems]);
 
   const handleQuestionChange = (field, value) => {
-    setCurrentQuestion(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setCurrentQuestion(prev => {
+      const newQuestion = {
+        ...prev,
+        [field]: value,
+      };
+      if (field === 'type') {
+        if (value === 'select-all') {
+          newQuestion.correctAnswer = [];
+        } else if (value === 'matching') {
+          newQuestion.correctAnswer = newQuestion.rightItems || [];
+        } else {
+          newQuestion.correctAnswer = '';
+        }
+      }
+      return newQuestion;
+    });
   };
 
   const handleOptionChange = (index, value) => {
