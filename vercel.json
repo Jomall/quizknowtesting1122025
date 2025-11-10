@@ -15,6 +15,7 @@
       "dest": "/server.js"
     }
   ],
+  "outputDirectory": "client/build",
   "env": {
     "NODE_ENV": "production",
     "MONGODB_URI": "mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/"
