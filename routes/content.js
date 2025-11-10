@@ -3,6 +3,7 @@ const Content = require('../models/Content');
 const ContentView = require('../models/ContentView');
 const { auth, authorize, checkApproved } = require('../middleware/auth');
 const path = require('path');
+const { put } = require('@vercel/blob');
 
 const router = express.Router();
 
@@ -45,7 +46,12 @@ router.post('/upload', auth, authorize('instructor'), checkApproved, getUpload, 
       if (type === 'link') {
         contentData.url = req.body.url;
       } else {
-        contentData.filePath = req.file.path;
+        // Upload file to Vercel Blob
+        const blob = await put(`content/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+          access: 'public',
+        });
+
+        contentData.filePath = blob.url;
         contentData.fileName = req.file.originalname;
         contentData.fileSize = req.file.size;
         contentData.mimeType = req.file.mimetype;
