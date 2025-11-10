@@ -150,6 +150,8 @@ const CreateContentPage = () => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          maxBodyLength: 50 * 1024 * 1024, // 50MB
+          maxContentLength: 50 * 1024 * 1024, // 50MB
         });
       }
 
