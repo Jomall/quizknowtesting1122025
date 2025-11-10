@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.js": {
+    "api/server.js": {
       "maxDuration": 30
     }
   },
@@ -12,7 +12,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/api/server.js"
+      "dest": "/client/build/index.html"
     }
   ],
   "outputDirectory": "client/build",
