@@ -26,6 +26,7 @@
   "outputDirectory": "client/build",
   "env": {
     "NODE_ENV": "production",
-    "MONGODB_URI": "mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/"
+    "MONGODB_URI": "mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/",
+    "JWT_SECRET": "your-super-secret-jwt-key-change-in-production"
   }
 }
