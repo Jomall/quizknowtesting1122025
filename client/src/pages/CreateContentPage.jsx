@@ -150,6 +150,7 @@ const CreateContentPage = () => {
         const { put } = await import('@vercel/blob');
         const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
           access: 'public',
+          token: process.env.REACT_APP_BLOB_READ_WRITE_TOKEN,
         });
 
         // Then create content with blob URL
