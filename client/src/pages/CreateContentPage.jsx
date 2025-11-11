@@ -146,12 +146,28 @@ const CreateContentPage = () => {
         formData.append('allowedStudents', JSON.stringify(selectedStudents));
         formData.append('file', selectedFile);
 
-        await axios.post('/api/content/upload', formData, {
+        // Upload file directly to Vercel Blob first
+        const { put } = await import('@vercel/blob');
+        const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
+          access: 'public',
+        });
+
+        // Then create content with blob URL
+        const contentFormData = new FormData();
+        contentFormData.append('title', contentData.title);
+        contentFormData.append('type', contentData.type);
+        contentFormData.append('description', contentData.description);
+        contentFormData.append('tags', JSON.stringify(contentData.tags));
+        contentFormData.append('allowedStudents', JSON.stringify(selectedStudents));
+        contentFormData.append('fileUrl', blob.url);
+        contentFormData.append('fileName', selectedFile.name);
+        contentFormData.append('fileSize', selectedFile.size.toString());
+        contentFormData.append('mimeType', selectedFile.type);
+
+        await axios.post('/api/content/upload', contentFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          maxBodyLength: 50 * 1024 * 1024, // 50MB
-          maxContentLength: 50 * 1024 * 1024, // 50MB
         });
       }
 
