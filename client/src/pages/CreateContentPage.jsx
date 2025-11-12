@@ -191,8 +191,10 @@ const CreateContentPage = () => {
       }, 2000);
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create content');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create content';
+      setError(errorMessage);
       console.error('Error creating content:', err);
+      console.error('Error response:', err.response);
       setUploading(false);
       setUploadProgress(0);
     }
