@@ -14,6 +14,7 @@ import {
   IconButton,
   Alert,
   Input,
+  LinearProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 
 import StudentSelector from '../components/common/StudentSelector';
 import axios from 'axios';
+import { put } from '@vercel/blob';
 
 const CreateContentPage = () => {
   const [contentData, setContentData] = useState({
@@ -43,6 +45,8 @@ const CreateContentPage = () => {
   const [currentTag, setCurrentTag] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const navigate = useNavigate();
 
@@ -121,6 +125,8 @@ const CreateContentPage = () => {
 
     try {
       setError('');
+      setUploading(true);
+      setUploadProgress(0);
 
       if (contentData.type === 'link') {
         const formData = new FormData();
@@ -137,20 +143,32 @@ const CreateContentPage = () => {
           },
         });
       } else {
-        // Upload file to server (fallback to original method)
+        // Upload file directly to Vercel Blob first
+        setUploadProgress(10);
+        const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
+          access: 'public',
+        });
+        setUploadProgress(50);
+
+        // Send content data to server with blob URL
         const formData = new FormData();
         formData.append('title', contentData.title);
         formData.append('type', contentData.type);
         formData.append('description', contentData.description);
         formData.append('tags', JSON.stringify(contentData.tags));
         formData.append('allowedStudents', JSON.stringify(selectedStudents));
-        formData.append('file', selectedFile);
+        formData.append('fileUrl', blob.url);
+        formData.append('fileName', selectedFile.name);
+        formData.append('fileSize', selectedFile.size.toString());
+        formData.append('mimeType', selectedFile.type);
 
+        setUploadProgress(80);
         await axios.post('/api/content/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
+        setUploadProgress(100);
       }
 
       setSuccess('Content created successfully!');
@@ -166,6 +184,8 @@ const CreateContentPage = () => {
       setSelectedFile(null);
       setSelectedStudents([]);
       setCurrentTag('');
+      setUploading(false);
+      setUploadProgress(0);
 
       // Navigate back to dashboard after a short delay
       setTimeout(() => {
@@ -175,6 +195,8 @@ const CreateContentPage = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create content');
       console.error('Error creating content:', err);
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -314,6 +336,16 @@ const CreateContentPage = () => {
             onSelectionChange={handleStudentSelectionChange}
           />
 
+          {/* Upload Progress */}
+          {uploading && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Uploading... {uploadProgress}%
+              </Typography>
+              <LinearProgress variant="determinate" value={uploadProgress} />
+            </Box>
+          )}
+
           {/* Error/Success Messages */}
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
@@ -333,12 +365,14 @@ const CreateContentPage = () => {
               type="submit"
               variant="contained"
               sx={{ minWidth: 120 }}
+              disabled={uploading}
             >
-              Create Content
+              {uploading ? 'Creating Content...' : 'Create Content'}
             </Button>
             <Button
               variant="outlined"
               onClick={() => navigate('/dashboard')}
+              disabled={uploading}
             >
               Cancel
             </Button>
