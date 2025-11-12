@@ -30,7 +30,7 @@ import { useNavigate } from 'react-router-dom';
 
 import StudentSelector from '../components/common/StudentSelector';
 import axios from 'axios';
-import { put } from '@vercel/blob';
+
 
 const CreateContentPage = () => {
   const [contentData, setContentData] = useState({
@@ -143,29 +143,23 @@ const CreateContentPage = () => {
           },
         });
       } else {
-        // Upload file directly to Vercel Blob first
-        setUploadProgress(10);
-        const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
-          access: 'public',
-        });
-        setUploadProgress(50);
-
-        // Send content data to server with blob URL
+        // Send file and content data to server for upload
         const formData = new FormData();
         formData.append('title', contentData.title);
         formData.append('type', contentData.type);
         formData.append('description', contentData.description);
         formData.append('tags', JSON.stringify(contentData.tags));
         formData.append('allowedStudents', JSON.stringify(selectedStudents));
-        formData.append('fileUrl', blob.url);
-        formData.append('fileName', selectedFile.name);
-        formData.append('fileSize', selectedFile.size.toString());
-        formData.append('mimeType', selectedFile.type);
+        formData.append('file', selectedFile);
 
-        setUploadProgress(80);
+        setUploadProgress(50);
         await axios.post('/api/content/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(50 + (percentCompleted / 2));
           },
         });
         setUploadProgress(100);

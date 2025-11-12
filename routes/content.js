@@ -46,24 +46,15 @@ router.post('/upload', auth, authorize('instructor'), checkApproved, getUpload, 
       if (type === 'link') {
         contentData.url = req.body.url;
       } else {
-        // Check if file was uploaded via Vercel Blob (client-side upload)
-        if (req.body.fileUrl) {
-          contentData.filePath = req.body.fileUrl;
-          contentData.fileName = req.body.fileName;
-          contentData.fileSize = parseInt(req.body.fileSize);
-          contentData.mimeType = req.body.mimeType;
-        } else {
-          // Fallback to server-side upload (for backward compatibility)
-          // Upload file to Vercel Blob
-          const blob = await put(`content/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
-            access: 'public',
-          });
+        // Upload file to Vercel Blob from server-side
+        const blob = await put(`content/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+          access: 'public',
+        });
 
-          contentData.filePath = blob.url;
-          contentData.fileName = req.file.originalname;
-          contentData.fileSize = req.file.size;
-          contentData.mimeType = req.file.mimetype;
-        }
+        contentData.filePath = blob.url;
+        contentData.fileName = req.file.originalname;
+        contentData.fileSize = req.file.size;
+        contentData.mimeType = req.file.mimetype;
       }
 
       const content = new Content(contentData);
