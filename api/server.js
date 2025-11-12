@@ -107,7 +107,7 @@ if (!process.env.VERCEL) {
   upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 2 * 1024 * 1024 // 2MB limit for Vercel
+      fileSize: 5 * 1024 * 1024 // 5MB limit for Vercel (maximum allowed)
     }
   });
 }
