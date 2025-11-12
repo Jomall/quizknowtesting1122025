@@ -137,9 +137,11 @@ const CreateContentPage = () => {
         formData.append('allowedStudents', JSON.stringify(selectedStudents));
         formData.append('url', contentData.url);
 
+        const token = localStorage.getItem('token');
         await axios.post('/api/content/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
           },
         });
       } else {
@@ -153,9 +155,11 @@ const CreateContentPage = () => {
         formData.append('file', selectedFile);
 
         setUploadProgress(50);
+        const token = localStorage.getItem('token');
         await axios.post('/api/content/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
           },
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
