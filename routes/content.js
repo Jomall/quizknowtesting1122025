@@ -20,6 +20,7 @@ router.post('/upload', auth, authorize('instructor'), checkApproved, getUpload, 
 
     upload.single('file')(req, res, async (err) => {
       if (err) {
+        console.error('Upload error:', err);
         return res.status(400).json({ message: err.message });
       }
 
@@ -63,6 +64,7 @@ router.post('/upload', auth, authorize('instructor'), checkApproved, getUpload, 
       res.status(201).json(content);
     });
   } catch (error) {
+    console.error('Content upload error:', error);
     res.status(500).json({ message: error.message });
   }
 });
