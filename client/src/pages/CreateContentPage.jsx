@@ -30,7 +30,6 @@ import { useNavigate } from 'react-router-dom';
 
 import StudentSelector from '../components/common/StudentSelector';
 import axios from 'axios';
-import { put } from '@vercel/blob';
 
 
 const CreateContentPage = () => {
@@ -146,37 +145,27 @@ const CreateContentPage = () => {
           },
         });
       } else {
-        // Upload large files directly to Vercel Blob from client
-        setUploadProgress(10);
+        // Send file and content data to server for upload
+        const formData = new FormData();
+        formData.append('title', contentData.title);
+        formData.append('type', contentData.type);
+        formData.append('description', contentData.description);
+        formData.append('tags', JSON.stringify(contentData.tags));
+        formData.append('allowedStudents', JSON.stringify(selectedStudents));
+        formData.append('file', selectedFile);
 
-        // Upload file to Vercel Blob
-        const blob = await put(`content/${Date.now()}-${selectedFile.name}`, selectedFile, {
-          access: 'public',
-          onUploadProgress: (progress) => {
-            setUploadProgress(10 + (progress.percentage / 2));
-          },
-        });
-
-        setUploadProgress(60);
-
-        // Send content metadata to server
+        setUploadProgress(50);
         const token = localStorage.getItem('token');
-        await axios.post('/api/content', {
-          title: contentData.title,
-          type: contentData.type,
-          description: contentData.description,
-          tags: contentData.tags,
-          allowedStudents: selectedStudents,
-          filePath: blob.url,
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-          mimeType: selectedFile.type,
-        }, {
+        await axios.post('/api/content/upload', formData, {
           headers: {
+            'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`,
           },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(50 + (percentCompleted / 2));
+          },
         });
-
         setUploadProgress(100);
       }
 
