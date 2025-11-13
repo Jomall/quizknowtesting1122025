@@ -194,13 +194,23 @@ router.get('/:id/view-file', auth, async (req, res) => {
       return res.status(400).json({ message: 'No file to view' });
     }
 
-    // Set appropriate headers for inline viewing
+    // Fetch the file from Vercel Blob and stream it to the client
+    const axios = require('axios');
+    const response = await axios.get(content.filePath, { responseType: 'stream' });
+
+    // Set headers for inline viewing
     res.setHeader('Content-Type', content.mimeType || 'application/octet-stream');
     res.setHeader('Content-Disposition', 'inline');
 
-    // Send the file
-    res.sendFile(content.filePath);
+    // Pipe the stream to response
+    response.data.pipe(res);
+
+    response.data.on('error', (error) => {
+      console.error('Error streaming file:', error);
+      res.status(500).json({ message: 'Error viewing file' });
+    });
   } catch (error) {
+    console.error('View file error:', error);
     res.status(500).json({ message: error.message });
   }
 });
