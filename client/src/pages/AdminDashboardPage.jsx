@@ -151,7 +151,8 @@ const AdminDashboardPage = () => {
         role: u.role,
         email: u.email,
         joined: new Date(u.createdAt).toLocaleDateString(),
-        isSuspended: u.isSuspended
+        isSuspended: u.isSuspended,
+        lastSeen: u.lastSeen ? new Date(u.lastSeen).toLocaleString() : 'Never'
       })) : []);
       setPendingInstructors(Array.isArray(pending) ? pending.map(u => ({
         id: u._id,
@@ -726,7 +727,7 @@ const AdminDashboardPage = () => {
                         </ListItemAvatar>
                         <ListItemText
                           primary={user.name}
-                          secondary={`${user.email} • Joined: ${user.joined}`}
+                          secondary={`${user.email} • Joined: ${user.joined} • Last Seen: ${user.lastSeen}`}
                         />
                       </ListItem>
                       <Divider />
@@ -1095,6 +1096,12 @@ const AdminDashboardPage = () => {
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 2 }}>
                       {new Date(selectedUser.createdAt).toLocaleDateString()}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Last Seen
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                      {selectedUser.lastSeen ? new Date(selectedUser.lastSeen).toLocaleString() : 'Never'}
                     </Typography>
                     {selectedUser.role === 'instructor' && (
                       <>

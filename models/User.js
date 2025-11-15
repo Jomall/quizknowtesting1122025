@@ -79,6 +79,10 @@ const userSchema = new mongoose.Schema({
   lastLogoutTime: {
     type: Date,
     default: null
+  },
+  lastSeen: {
+    type: Date,
+    default: null
   }
 });
 

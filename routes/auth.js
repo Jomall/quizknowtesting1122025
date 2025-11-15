@@ -130,6 +130,7 @@ router.post('/login', async (req, res) => {
       user.totalStudyTime += sessionTime;
     }
     user.lastLoginTime = now;
+    user.lastSeen = now;
     await user.save();
 
     // Generate JWT
