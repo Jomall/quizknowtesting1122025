@@ -301,13 +301,13 @@ const StudentDashboardPage = () => {
                     const isCompleted = completedQuizIds.has(quiz._id);
                     return (
                       <React.Fragment key={quiz._id}>
-                        <ListItem
-                          secondaryAction={
+                          <ListItem
+                            secondaryAction={
 <Button
   variant="contained"
   size="small"
   startIcon={<PlayArrowIcon />}
-                            onClick={() => isCompleted ? navigate(`/quiz/${quiz._id}/results`) : handleTakeQuiz(quiz._id)}
+                            onClick={() => isCompleted ? (quiz.settings?.allowRetakes ? navigate(`/quiz/${quiz._id}/results`) : navigate(`/quiz-review/${quiz._id}`)) : handleTakeQuiz(quiz._id)}
 >
   {isCompleted ? 'View Results' : 'Take Quiz'}
 </Button>

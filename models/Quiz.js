@@ -28,6 +28,128 @@ const questionSchema = new mongoose.Schema({
   }],
   correctAnswer: mongoose.Schema.Types.Mixed,
   correctAnswers: [mongoose.Schema.Types.Mixed], // for multiple correct answers
+  // Enhanced short answer fields
+  alternativeAnswers: [{
+    text: {
+      type: String,
+      required: true
+    },
+    weights: mongoose.Schema.Types.Mixed // keyword weights for this alternative
+  }],
+  keywordWeights: mongoose.Schema.Types.Mixed, // weights for primary answer keywords
+  // Enhanced fill-in-the-blank fields
+  blanks: [{
+    id: {
+      type: String,
+      required: true
+    },
+    correctAnswer: {
+      type: String,
+      required: true
+    },
+    alternativeAnswers: [{
+      text: {
+        type: String,
+        required: true
+      },
+      weights: mongoose.Schema.Types.Mixed
+    }],
+    keywordWeights: mongoose.Schema.Types.Mixed,
+    gradingOptions: {
+      usePartialCredit: {
+        type: Boolean,
+        default: true
+      },
+      useSemanticSimilarity: {
+        type: Boolean,
+        default: true
+      },
+      useSynonyms: {
+        type: Boolean,
+        default: true
+      },
+      useStemming: {
+        type: Boolean,
+        default: true
+      },
+      useFuzzyMatching: {
+        type: Boolean,
+        default: true
+      },
+      fuzzyThreshold: {
+        type: Number,
+        default: 0.8,
+        min: 0,
+        max: 1
+      },
+      semanticWeight: {
+        type: Number,
+        default: 0.3,
+        min: 0,
+        max: 1
+      },
+      keywordWeight: {
+        type: Number,
+        default: 0.7,
+        min: 0,
+        max: 1
+      },
+      caseSensitive: {
+        type: Boolean,
+        default: false
+      }
+    },
+    size: {
+      type: String,
+      enum: ['small', 'medium', 'large'],
+      default: 'medium'
+    },
+    hint: String,
+    points: {
+      type: Number,
+      default: 1
+    }
+  }],
+  gradingOptions: {
+    usePartialCredit: {
+      type: Boolean,
+      default: true
+    },
+    useSemanticSimilarity: {
+      type: Boolean,
+      default: true
+    },
+    useSynonyms: {
+      type: Boolean,
+      default: true
+    },
+    useStemming: {
+      type: Boolean,
+      default: true
+    },
+    useFuzzyMatching: {
+      type: Boolean,
+      default: true
+    },
+    fuzzyThreshold: {
+      type: Number,
+      default: 0.8,
+      min: 0,
+      max: 1
+    },
+    semanticWeight: {
+      type: Number,
+      default: 0.3,
+      min: 0,
+      max: 1
+    },
+    keywordWeight: {
+      type: Number,
+      default: 0.7,
+      min: 0,
+      max: 1
+    }
+  },
   points: {
     type: Number,
     default: 1
@@ -141,6 +263,36 @@ const quizSchema = new mongoose.Schema({
     requireManualReview: {
       type: Boolean,
       default: false
+    }
+  },
+  essayGradingSettings: {
+    useStemming: {
+      type: Boolean,
+      default: true
+    },
+    useSynonyms: {
+      type: Boolean,
+      default: true
+    },
+    removeStopwords: {
+      type: Boolean,
+      default: true
+    },
+    allowPartialCredit: {
+      type: Boolean,
+      default: true
+    },
+    matchThreshold: {
+      type: Number,
+      default: 70,
+      min: 0,
+      max: 100
+    },
+    semanticWeight: {
+      type: Number,
+      default: 60,
+      min: 0,
+      max: 100
     }
   },
   isPublished: {

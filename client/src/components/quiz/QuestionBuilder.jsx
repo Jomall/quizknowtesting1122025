@@ -49,6 +49,18 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
       points: 1,
       explanation: '',
       isRequired: true,
+      alternativeAnswers: [],
+      gradingOptions: {
+        usePartialCredit: true,
+        useSemanticSimilarity: true,
+        useSynonyms: true,
+        useStemming: true,
+        useFuzzyMatching: true,
+        fuzzyThreshold: 0.8,
+        semanticWeight: 0.3,
+        keywordWeight: 0.7,
+      },
+      keywordWeights: {},
     };
   };
 
@@ -186,14 +198,225 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
 
       case 'short-answer':
         return (
-          <TextField
-            fullWidth
-            label="Correct Answer (keywords)"
-            value={currentQuestion.correctAnswer}
-            onChange={(e) => handleQuestionChange('correctAnswer', e.target.value)}
-            margin="normal"
-            helperText="Enter keywords separated by commas"
-          />
+          <Box>
+            <TextField
+              fullWidth
+              label="Primary Correct Answer"
+              value={currentQuestion.correctAnswer}
+              onChange={(e) => handleQuestionChange('correctAnswer', e.target.value)}
+              margin="normal"
+              helperText="Enter the main correct answer"
+            />
+
+            {/* Alternative Answers */}
+            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              Alternative Correct Answers
+            </Typography>
+            {currentQuestion.alternativeAnswers && currentQuestion.alternativeAnswers.length > 0 ? (
+              currentQuestion.alternativeAnswers.map((alt, index) => (
+                <Box key={index} display="flex" alignItems="center" mb={2}>
+                  <TextField
+                    fullWidth
+                    label={`Alternative Answer ${index + 1}`}
+                    value={alt.text || alt}
+                    onChange={(e) => {
+                      const newAlts = [...currentQuestion.alternativeAnswers];
+                      if (typeof alt === 'string') {
+                        newAlts[index] = e.target.value;
+                      } else {
+                        newAlts[index] = { ...alt, text: e.target.value };
+                      }
+                      handleQuestionChange('alternativeAnswers', newAlts);
+                    }}
+                    variant="outlined"
+                  />
+                  <IconButton
+                    onClick={() => {
+                      const newAlts = currentQuestion.alternativeAnswers.filter((_, i) => i !== index);
+                      handleQuestionChange('alternativeAnswers', newAlts);
+                    }}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                No alternative answers added yet.
+              </Typography>
+            )}
+            <Button
+              startIcon={<Add />}
+              onClick={() => {
+                const newAlts = currentQuestion.alternativeAnswers || [];
+                newAlts.push({ text: '', weights: {} });
+                handleQuestionChange('alternativeAnswers', newAlts);
+              }}
+              size="small"
+            >
+              Add Alternative Answer
+            </Button>
+
+            {/* Grading Options */}
+            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              Grading Options
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentQuestion.gradingOptions?.usePartialCredit ?? true}
+                      onChange={(e) => handleQuestionChange('gradingOptions', {
+                        ...currentQuestion.gradingOptions,
+                        usePartialCredit: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Use Partial Credit"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentQuestion.gradingOptions?.useSemanticSimilarity ?? true}
+                      onChange={(e) => handleQuestionChange('gradingOptions', {
+                        ...currentQuestion.gradingOptions,
+                        useSemanticSimilarity: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Use Semantic Similarity"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentQuestion.gradingOptions?.useSynonyms ?? true}
+                      onChange={(e) => handleQuestionChange('gradingOptions', {
+                        ...currentQuestion.gradingOptions,
+                        useSynonyms: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Use Synonyms"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentQuestion.gradingOptions?.useStemming ?? true}
+                      onChange={(e) => handleQuestionChange('gradingOptions', {
+                        ...currentQuestion.gradingOptions,
+                        useStemming: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Use Stemming"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentQuestion.gradingOptions?.useFuzzyMatching ?? true}
+                      onChange={(e) => handleQuestionChange('gradingOptions', {
+                        ...currentQuestion.gradingOptions,
+                        useFuzzyMatching: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Use Fuzzy Matching (Typos)"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Fuzzy Threshold"
+                  type="number"
+                  value={currentQuestion.gradingOptions?.fuzzyThreshold ?? 0.8}
+                  onChange={(e) => handleQuestionChange('gradingOptions', {
+                    ...currentQuestion.gradingOptions,
+                    fuzzyThreshold: parseFloat(e.target.value) || 0.8
+                  })}
+                  inputProps={{ min: 0, max: 1, step: 0.1 }}
+                  helperText="Similarity threshold for fuzzy matching (0-1)"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Semantic Weight"
+                  type="number"
+                  value={currentQuestion.gradingOptions?.semanticWeight ?? 0.3}
+                  onChange={(e) => handleQuestionChange('gradingOptions', {
+                    ...currentQuestion.gradingOptions,
+                    semanticWeight: parseFloat(e.target.value) || 0.3
+                  })}
+                  inputProps={{ min: 0, max: 1, step: 0.1 }}
+                  helperText="Weight for semantic similarity (0-1)"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Keyword Weight"
+                  type="number"
+                  value={currentQuestion.gradingOptions?.keywordWeight ?? 0.7}
+                  onChange={(e) => handleQuestionChange('gradingOptions', {
+                    ...currentQuestion.gradingOptions,
+                    keywordWeight: parseFloat(e.target.value) || 0.7
+                  })}
+                  inputProps={{ min: 0, max: 1, step: 0.1 }}
+                  helperText="Weight for keyword matching (0-1)"
+                />
+              </Grid>
+            </Grid>
+
+            {/* Keyword Weights */}
+            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              Keyword Weights (Optional)
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Assign weights to important keywords in the primary answer. Higher weights give more importance to those keywords.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Keyword Weights (JSON format)"
+              value={currentQuestion.keywordWeights ? JSON.stringify(currentQuestion.keywordWeights, null, 2) : '{}'}
+              onChange={(e) => {
+                try {
+                  const weights = JSON.parse(e.target.value);
+                  handleQuestionChange('keywordWeights', weights);
+                } catch (error) {
+                  // Invalid JSON, keep current value
+                }
+              }}
+              margin="normal"
+              multiline
+              rows={3}
+              helperText='Example: {"photosynthesis": 2.0, "chlorophyll": 1.5, "sunlight": 1.0}'
+              error={(() => {
+                try {
+                  JSON.parse(currentQuestion.keywordWeights ? JSON.stringify(currentQuestion.keywordWeights) : '{}');
+                  return false;
+                } catch {
+                  return true;
+                }
+              })()}
+            />
+          </Box>
         );
 
       case 'essay':
@@ -211,23 +434,320 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         );
 
       case 'fill-in-the-blank':
+        // Initialize blanks if not present (for backward compatibility)
+        const blanks = currentQuestion.blanks || [];
+        const hasLegacyFormat = !currentQuestion.blanks && currentQuestion.correctAnswer;
+
+        // Convert legacy format to new format if needed
+        const effectiveBlanks = hasLegacyFormat ? [{
+          id: 'blank-1',
+          correctAnswer: currentQuestion.correctAnswer || '',
+          alternativeAnswers: currentQuestion.alternativeAnswers || [],
+          keywordWeights: currentQuestion.keywordWeights || {},
+          gradingOptions: currentQuestion.gradingOptions || {
+            usePartialCredit: true,
+            useSemanticSimilarity: true,
+            useSynonyms: true,
+            useStemming: true,
+            useFuzzyMatching: true,
+            fuzzyThreshold: 0.8,
+            semanticWeight: 0.3,
+            keywordWeight: 0.7,
+            caseSensitive: false
+          },
+          size: 'medium',
+          hint: '',
+          points: 1
+        }] : blanks;
+
         return (
           <Box>
+            <Typography variant="h6" gutterBottom>
+              Question with Blanks
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Use [blank] to indicate where blanks should appear. Each [blank] will create an input field.
+            </Typography>
             <TextField
               fullWidth
-              label="Question with blank"
+              label="Question Text"
               value={currentQuestion.question}
               onChange={(e) => handleQuestionChange('question', e.target.value)}
               margin="normal"
-              helperText="Use [blank] to indicate where the blank should appear"
+              multiline
+              rows={3}
+              helperText="Example: The process of [blank] uses [blank] to produce [blank]."
             />
-            <TextField
-              fullWidth
-              label="Correct Answer"
-              value={currentQuestion.correctAnswer}
-              onChange={(e) => handleQuestionChange('correctAnswer', e.target.value)}
-              margin="normal"
-            />
+
+            {/* Blanks Configuration */}
+            <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+              Blank Configurations
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Configure each blank with correct answers and grading options.
+            </Typography>
+
+            {effectiveBlanks.length > 0 ? (
+              effectiveBlanks.map((blank, index) => (
+                <Box key={blank.id || index} sx={{ border: '1px solid #e0e0e0', borderRadius: 1, p: 2, mb: 2 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1">
+                      Blank {index + 1}
+                    </Typography>
+                    <IconButton
+                      onClick={() => {
+                        const newBlanks = effectiveBlanks.filter((_, i) => i !== index);
+                        handleQuestionChange('blanks', newBlanks);
+                      }}
+                      disabled={effectiveBlanks.length <= 1}
+                      size="small"
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Correct Answer"
+                        value={blank.correctAnswer || ''}
+                        onChange={(e) => {
+                          const newBlanks = [...effectiveBlanks];
+                          newBlanks[index] = { ...blank, correctAnswer: e.target.value };
+                          handleQuestionChange('blanks', newBlanks);
+                        }}
+                        helperText="The primary correct answer for this blank"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Size</InputLabel>
+                        <Select
+                          value={blank.size || 'medium'}
+                          onChange={(e) => {
+                            const newBlanks = [...effectiveBlanks];
+                            newBlanks[index] = { ...blank, size: e.target.value };
+                            handleQuestionChange('blanks', newBlanks);
+                          }}
+                        >
+                          <MenuItem value="small">Small</MenuItem>
+                          <MenuItem value="medium">Medium</MenuItem>
+                          <MenuItem value="large">Large</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Hint (optional)"
+                        value={blank.hint || ''}
+                        onChange={(e) => {
+                          const newBlanks = [...effectiveBlanks];
+                          newBlanks[index] = { ...blank, hint: e.target.value };
+                          handleQuestionChange('blanks', newBlanks);
+                        }}
+                        helperText="Optional hint shown to students"
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Alternative Answers for this blank */}
+                  <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+                    Alternative Answers
+                  </Typography>
+                  {blank.alternativeAnswers && blank.alternativeAnswers.length > 0 ? (
+                    blank.alternativeAnswers.map((alt, altIndex) => (
+                      <Box key={altIndex} display="flex" alignItems="center" mb={1}>
+                        <TextField
+                          fullWidth
+                          label={`Alternative ${altIndex + 1}`}
+                          value={alt.text || alt}
+                          onChange={(e) => {
+                            const newBlanks = [...effectiveBlanks];
+                            const newAlts = [...blank.alternativeAnswers];
+                            if (typeof alt === 'string') {
+                              newAlts[altIndex] = e.target.value;
+                            } else {
+                              newAlts[altIndex] = { ...alt, text: e.target.value };
+                            }
+                            newBlanks[index] = { ...blank, alternativeAnswers: newAlts };
+                            handleQuestionChange('blanks', newBlanks);
+                          }}
+                          size="small"
+                        />
+                        <IconButton
+                          onClick={() => {
+                            const newBlanks = [...effectiveBlanks];
+                            const newAlts = blank.alternativeAnswers.filter((_, i) => i !== altIndex);
+                            newBlanks[index] = { ...blank, alternativeAnswers: newAlts };
+                            handleQuestionChange('blanks', newBlanks);
+                          }}
+                          size="small"
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                      No alternative answers.
+                    </Typography>
+                  )}
+                  <Button
+                    startIcon={<Add />}
+                    onClick={() => {
+                      const newBlanks = [...effectiveBlanks];
+                      const newAlts = blank.alternativeAnswers || [];
+                      newAlts.push({ text: '', weights: {} });
+                      newBlanks[index] = { ...blank, alternativeAnswers: newAlts };
+                      handleQuestionChange('blanks', newBlanks);
+                    }}
+                    size="small"
+                    sx={{ mt: 1 }}
+                  >
+                    Add Alternative
+                  </Button>
+
+                  {/* Grading Options for this blank */}
+                  <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+                    Grading Options
+                  </Typography>
+                  <Grid container spacing={1}>
+                    <Grid item xs={6} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={blank.gradingOptions?.usePartialCredit ?? true}
+                            onChange={(e) => {
+                              const newBlanks = [...effectiveBlanks];
+                              newBlanks[index] = {
+                                ...blank,
+                                gradingOptions: {
+                                  ...blank.gradingOptions,
+                                  usePartialCredit: e.target.checked
+                                }
+                              };
+                              handleQuestionChange('blanks', newBlanks);
+                            }}
+                          />
+                        }
+                        label="Partial Credit"
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={blank.gradingOptions?.useSynonyms ?? true}
+                            onChange={(e) => {
+                              const newBlanks = [...effectiveBlanks];
+                              newBlanks[index] = {
+                                ...blank,
+                                gradingOptions: {
+                                  ...blank.gradingOptions,
+                                  useSynonyms: e.target.checked
+                                }
+                              };
+                              handleQuestionChange('blanks', newBlanks);
+                            }}
+                          />
+                        }
+                        label="Synonyms"
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={blank.gradingOptions?.useFuzzyMatching ?? true}
+                            onChange={(e) => {
+                              const newBlanks = [...effectiveBlanks];
+                              newBlanks[index] = {
+                                ...blank,
+                                gradingOptions: {
+                                  ...blank.gradingOptions,
+                                  useFuzzyMatching: e.target.checked
+                                }
+                              };
+                              handleQuestionChange('blanks', newBlanks);
+                            }}
+                          />
+                        }
+                        label="Fuzzy Match"
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            size="small"
+                            checked={blank.gradingOptions?.caseSensitive ?? false}
+                            onChange={(e) => {
+                              const newBlanks = [...effectiveBlanks];
+                              newBlanks[index] = {
+                                ...blank,
+                                gradingOptions: {
+                                  ...blank.gradingOptions,
+                                  caseSensitive: e.target.checked
+                                }
+                              };
+                              handleQuestionChange('blanks', newBlanks);
+                            }}
+                          />
+                        }
+                        label="Case Sensitive"
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                No blanks configured yet.
+              </Typography>
+            )}
+
+            <Button
+              startIcon={<Add />}
+              onClick={() => {
+                const newBlanks = [...effectiveBlanks, {
+                  id: `blank-${effectiveBlanks.length + 1}`,
+                  correctAnswer: '',
+                  alternativeAnswers: [],
+                  keywordWeights: {},
+                  gradingOptions: {
+                    usePartialCredit: true,
+                    useSemanticSimilarity: true,
+                    useSynonyms: true,
+                    useStemming: true,
+                    useFuzzyMatching: true,
+                    fuzzyThreshold: 0.8,
+                    semanticWeight: 0.3,
+                    keywordWeight: 0.7,
+                    caseSensitive: false
+                  },
+                  size: 'medium',
+                  hint: '',
+                  points: 1
+                }];
+                handleQuestionChange('blanks', newBlanks);
+              }}
+              size="small"
+              sx={{ mt: 2 }}
+            >
+              Add Blank
+            </Button>
+
+            {/* Legacy format warning */}
+            {hasLegacyFormat && (
+              <Typography variant="body2" color="warning.main" sx={{ mt: 2 }}>
+                ⚠️ This question uses the old format. It will be automatically converted to the new multi-blank format when saved.
+              </Typography>
+            )}
           </Box>
         );
 

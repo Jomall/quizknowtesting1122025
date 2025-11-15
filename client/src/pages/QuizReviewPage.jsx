@@ -324,6 +324,42 @@ const QuizReviewPage = () => {
                         </Box>
                       )}
 
+                      {/* Essay Grading Details */}
+                      {question.type === 'essay' && answer?.gradingDetails && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.200' }}>
+                          <Typography variant="body2" fontWeight="bold" gutterBottom color="primary">
+                            AI Grading Analysis:
+                          </Typography>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Score: <strong>{(answer.gradingDetails.score * 100).toFixed(1)}%</strong>
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Confidence: <strong>{(answer.gradingDetails.confidence * 100).toFixed(1)}%</strong>
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Matched Keywords: <strong>{answer.gradingDetails.matchedKeywords}/{answer.gradingDetails.totalKeywords}</strong>
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="body2" color="text.secondary">
+                                Semantic Similarity: <strong>{answer.gradingDetails.semanticSimilarity}%</strong>
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                Analysis: <em>{answer.gradingDetails.analysis}</em>
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      )}
+
                       {question.explanation && (
                         <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
                           <Typography variant="body2" fontWeight="bold" gutterBottom>

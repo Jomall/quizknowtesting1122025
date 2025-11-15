@@ -160,18 +160,55 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         );
 
       case 'fill-in-the-blank':
+        // Parse question text for [blank] placeholders
+        const questionText = question.question || '';
+        const blankRegex = /\[blank\]/g;
+        const blanks = question.blanks || [];
+
+        // Split question text by [blank] and create segments
+        const segments = questionText.split(blankRegex);
+        const blankCount = (questionText.match(blankRegex) || []).length;
+
+        // Ensure we have enough blanks configured
+        const effectiveBlanks = blanks.length >= blankCount ? blanks : blanks.concat(
+          Array(blankCount - blanks.length).fill().map((_, i) => ({
+            id: `blank-${blanks.length + i + 1}`,
+            correctAnswer: '',
+            size: 'medium',
+            hint: ''
+          }))
+        );
+
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              {question.question}
+              {segments.map((segment, index) => (
+                <React.Fragment key={index}>
+                  {segment}
+                  {index < segments.length - 1 && (
+                    <TextField
+                      size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
+                      label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
+                      value={(currentAnswer && currentAnswer[index]) || ''}
+                      onChange={(e) => {
+                        const currentAnswers = currentAnswer || [];
+                        const newAnswers = [...currentAnswers];
+                        newAnswers[index] = e.target.value;
+                        handleAnswerChange(newAnswers);
+                      }}
+                      sx={{
+                        mx: 1,
+                        minWidth: effectiveBlanks[index]?.size === 'large' ? 200 :
+                                 effectiveBlanks[index]?.size === 'small' ? 100 : 150,
+                        verticalAlign: 'baseline'
+                      }}
+                      variant="outlined"
+                      placeholder="Enter answer"
+                    />
+                  )}
+                </React.Fragment>
+              ))}
             </Typography>
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={currentAnswer || ''}
-              onChange={(e) => handleAnswerChange(e.target.value)}
-              placeholder="Fill in the blank..."
-            />
           </Box>
         );
 

@@ -6,6 +6,8 @@ const QuizSession = require('../models/QuizSession');
 const QuizSubmission = require('../models/QuizSubmission');
 const { auth } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
+const essayGradingService = require('../services/essayGradingService');
+const shortAnswerGradingService = require('../services/shortAnswerGradingService');
 
 // Get all quizzes with filtering and pagination
 router.get('/', auth, async (req, res) => {
@@ -634,8 +636,351 @@ router.post('/:id/submit', auth, async (req, res) => {
     session.answers.forEach(ans => {
       const question = session.quiz.questions.find(q => q._id.toString() === ans.questionId.toString());
       if (question) {
-        // Simple scoring - check if answer matches correct answer
-        if (question.correctAnswer === ans.answer) {
+        let isCorrect = false;
+
+        // Handle different question types
+        if (question.type === 'short-answer') {
+          // Enhanced grading for short-answer with advanced NLP processing
+          if (question.correctAnswer && ans.answer) {
+            try {
+              // Use the new enhanced short answer grading service
+              const gradingResult = shortAnswerGradingService.gradeShortAnswer(
+                ans.answer,
+                {
+                  correctAnswer: question.correctAnswer,
+                  alternativeAnswers: question.alternativeAnswers || [],
+                  keywordWeights: question.keywordWeights || {},
+                  gradingOptions: question.gradingOptions || {}
+                },
+                {
+                  usePartialCredit: question.gradingOptions?.usePartialCredit ?? true,
+                  useSemanticSimilarity: question.gradingOptions?.useSemanticSimilarity ?? true,
+                  useSynonyms: question.gradingOptions?.useSynonyms ?? true,
+                  useStemming: question.gradingOptions?.useStemming ?? true,
+                  useFuzzyMatching: question.gradingOptions?.useFuzzyMatching ?? true,
+                  fuzzyThreshold: question.gradingOptions?.fuzzyThreshold ?? 0.8,
+                  semanticWeight: question.gradingOptions?.semanticWeight ?? 0.3,
+                  keywordWeight: question.gradingOptions?.keywordWeight ?? 0.7
+                }
+              );
+
+              // Store detailed grading info in the answer object
+              ans.gradingDetails = {
+                score: gradingResult.score,
+                confidence: gradingResult.confidence,
+                matchedKeywords: gradingResult.matchedKeywords,
+                totalKeywords: gradingResult.totalKeywords,
+                semanticSimilarity: gradingResult.semanticSimilarity,
+                analysis: gradingResult.analysis
+              };
+
+              // Use the score for correctness determination (70% threshold)
+              isCorrect = gradingResult.isCorrect;
+
+              // Award partial points based on the score
+              const questionPoints = question.points || 1;
+              ans.points = Math.round(gradingResult.score * questionPoints * 100) / 100;
+
+            } catch (error) {
+              console.error('Enhanced short-answer grading error:', error);
+              // Fallback to basic keyword matching
+              const correctKeywords = question.correctAnswer
+                .toLowerCase()
+                .split(/[\s,]+/)
+                .map(k => k.trim())
+                .filter(k => k.length > 0);
+
+              const studentKeywords = ans.answer
+                .toLowerCase()
+                .split(/[\s,]+/)
+                .map(k => k.trim())
+                .filter(k => k.length > 0);
+
+              isCorrect = correctKeywords.every(keyword =>
+                studentKeywords.includes(keyword)
+              );
+
+              ans.points = isCorrect ? (question.points || 1) : 0;
+              ans.gradingDetails = { error: 'Enhanced grading failed, used fallback' };
+            }
+          }
+        } else if (question.type === 'fill-in-the-blank') {
+          // Enhanced grading for fill-in-the-blank with support for multiple blanks
+          if (ans.answer) {
+            try {
+              let totalScore = 0;
+              let totalMaxScore = 0;
+              const blankResults = [];
+
+              // Check if this is the new multi-blank format or legacy single-blank format
+              if (question.blanks && Array.isArray(question.blanks) && question.blanks.length > 0) {
+                // New multi-blank format
+                const studentAnswers = Array.isArray(ans.answer) ? ans.answer : [ans.answer];
+
+                question.blanks.forEach((blank, index) => {
+                  const studentAnswer = studentAnswers[index] || '';
+                  const blankMaxScore = blank.points || 1;
+                  totalMaxScore += blankMaxScore;
+
+                  let blankScore = 0;
+                  let isBlankCorrect = false;
+                  const blankGradingDetails = {};
+
+                  if (studentAnswer && blank.correctAnswer) {
+                    // Use individual blank grading options or fallback to question-level options
+                    const gradingOptions = blank.gradingOptions || question.gradingOptions || {
+                      usePartialCredit: true,
+                      useSemanticSimilarity: true,
+                      useSynonyms: true,
+                      useStemming: true,
+                      useFuzzyMatching: true,
+                      fuzzyThreshold: 0.8,
+                      semanticWeight: 0.3,
+                      keywordWeight: 0.7,
+                      caseSensitive: false
+                    };
+
+                    // Handle different grading approaches based on options
+                    if (gradingOptions.useFuzzyMatching || gradingOptions.useSemanticSimilarity) {
+                      // Enhanced grading with fuzzy matching and semantic similarity
+                      const gradingResult = shortAnswerGradingService.gradeShortAnswer(
+                        studentAnswer,
+                        {
+                          correctAnswer: blank.correctAnswer,
+                          alternativeAnswers: blank.alternativeAnswers || [],
+                          keywordWeights: blank.keywordWeights || {},
+                          gradingOptions: gradingOptions
+                        },
+                        {
+                          usePartialCredit: gradingOptions.usePartialCredit,
+                          useSemanticSimilarity: gradingOptions.useSemanticSimilarity,
+                          useSynonyms: gradingOptions.useSynonyms,
+                          useStemming: gradingOptions.useStemming,
+                          useFuzzyMatching: gradingOptions.useFuzzyMatching,
+                          fuzzyThreshold: gradingOptions.fuzzyThreshold,
+                          semanticWeight: gradingOptions.semanticWeight,
+                          keywordWeight: gradingOptions.keywordWeight
+                        }
+                      );
+
+                      blankScore = gradingResult.score;
+                      isBlankCorrect = gradingResult.isCorrect;
+
+                      blankGradingDetails.score = gradingResult.score;
+                      blankGradingDetails.confidence = gradingResult.confidence;
+                      blankGradingDetails.matchedKeywords = gradingResult.matchedKeywords;
+                      blankGradingDetails.totalKeywords = gradingResult.totalKeywords;
+                      blankGradingDetails.semanticSimilarity = gradingResult.semanticSimilarity;
+                      blankGradingDetails.analysis = gradingResult.analysis;
+                    } else {
+                      // Simple exact matching with case sensitivity option
+                      const correctAnswer = gradingOptions.caseSensitive ?
+                        blank.correctAnswer : blank.correctAnswer.toLowerCase();
+                      const studentAns = gradingOptions.caseSensitive ?
+                        studentAnswer : studentAnswer.toLowerCase();
+
+                      isBlankCorrect = correctAnswer.trim() === studentAns.trim();
+                      blankScore = isBlankCorrect ? 1 : 0;
+
+                      blankGradingDetails.method = 'exact';
+                      blankGradingDetails.caseSensitive = gradingOptions.caseSensitive;
+                    }
+                  }
+
+                  // Award points for this blank
+                  const blankPoints = Math.round(blankScore * blankMaxScore * 100) / 100;
+                  totalScore += blankPoints;
+
+                  blankResults.push({
+                    blankId: blank.id,
+                    blankIndex: index,
+                    studentAnswer: studentAnswer,
+                    correctAnswer: blank.correctAnswer,
+                    score: blankScore,
+                    points: blankPoints,
+                    maxPoints: blankMaxScore,
+                    isCorrect: isBlankCorrect,
+                    gradingDetails: blankGradingDetails
+                  });
+                });
+
+                // Overall question correctness (all blanks must be correct for full credit)
+                const overallScore = totalMaxScore > 0 ? totalScore / totalMaxScore : 0;
+                isCorrect = overallScore >= 0.8; // 80% threshold for overall correctness
+
+                // Store detailed grading info
+                ans.gradingDetails = {
+                  format: 'multi-blank',
+                  totalScore: totalScore,
+                  totalMaxScore: totalMaxScore,
+                  overallScore: overallScore,
+                  blankResults: blankResults,
+                  analysis: `Scored ${Math.round(overallScore * 100)}% overall (${totalScore}/${totalMaxScore} points)`
+                };
+
+                ans.points = Math.round(totalScore * 100) / 100;
+
+              } else {
+                // Legacy single-blank format - use existing logic for backward compatibility
+                const correctKeywords = question.correctAnswer
+                  .toLowerCase()
+                  .split(/[\s,]+/)
+                  .map(k => k.trim())
+                  .filter(k => k.length > 0);
+
+                const studentKeywords = ans.answer
+                  .toLowerCase()
+                  .split(/[\s,]+/)
+                  .map(k => k.trim())
+                  .filter(k => k.length > 0);
+
+                // Calculate fuzzy matches for each keyword
+                let matchedKeywords = 0;
+                let totalSimilarity = 0;
+                const keywordMatches = [];
+
+                correctKeywords.forEach(correctKw => {
+                  let bestSimilarity = 0;
+                  let bestMatch = null;
+
+                  studentKeywords.forEach(studentKw => {
+                    const similarity = essayGradingService.calculateFuzzyMatch(correctKw, studentKw).similarity;
+                    if (similarity > bestSimilarity) {
+                      bestSimilarity = similarity;
+                      bestMatch = studentKw;
+                    }
+                  });
+
+                  if (bestSimilarity >= 0.8) { // Fuzzy threshold for keyword match
+                    matchedKeywords++;
+                    totalSimilarity += bestSimilarity;
+                    keywordMatches.push({
+                      correct: correctKw,
+                      student: bestMatch,
+                      similarity: bestSimilarity
+                    });
+                  } else {
+                    keywordMatches.push({
+                      correct: correctKw,
+                      student: null,
+                      similarity: bestSimilarity
+                    });
+                  }
+                });
+
+                const matchPercentage = correctKeywords.length > 0 ? (matchedKeywords / correctKeywords.length) : 0;
+                const averageSimilarity = matchedKeywords > 0 ? totalSimilarity / matchedKeywords : 0;
+
+                // Store detailed grading info
+                ans.gradingDetails = {
+                  format: 'legacy-single-blank',
+                  matchPercentage: matchPercentage,
+                  matchedKeywords: matchedKeywords,
+                  totalKeywords: correctKeywords.length,
+                  averageSimilarity: averageSimilarity,
+                  keywordMatches: keywordMatches,
+                  analysis: `Matched ${matchedKeywords}/${correctKeywords.length} keywords with average similarity ${Math.round(averageSimilarity * 100)}%`
+                };
+
+                // Require most keywords to be present (80%) with fuzzy matching
+                isCorrect = matchPercentage >= 0.8;
+
+                // Award partial points based on match percentage and average similarity
+                const questionPoints = question.points || 1;
+                const combinedScore = (matchPercentage + averageSimilarity) / 2; // Average of percentage and similarity
+                ans.points = Math.round(combinedScore * questionPoints * 100) / 100;
+              }
+
+            } catch (error) {
+              console.error('Fill-in-the-blank grading error:', error);
+              // Fallback to exact matching
+              if (question.blanks && Array.isArray(question.blanks)) {
+                // Multi-blank fallback
+                const studentAnswers = Array.isArray(ans.answer) ? ans.answer : [ans.answer];
+                let totalCorrect = 0;
+                question.blanks.forEach((blank, index) => {
+                  const studentAnswer = studentAnswers[index] || '';
+                  if (studentAnswer && blank.correctAnswer) {
+                    if (studentAnswer.trim().toLowerCase() === blank.correctAnswer.trim().toLowerCase()) {
+                      totalCorrect++;
+                    }
+                  }
+                });
+                const matchPercentage = question.blanks.length > 0 ? totalCorrect / question.blanks.length : 0;
+                isCorrect = matchPercentage >= 0.8;
+                ans.points = Math.round(matchPercentage * (question.points || 1) * 100) / 100;
+              } else {
+                // Single-blank fallback
+                isCorrect = question.correctAnswer && ans.answer &&
+                  question.correctAnswer.trim().toLowerCase() === ans.answer.trim().toLowerCase();
+                ans.points = isCorrect ? (question.points || 1) : 0;
+              }
+              ans.gradingDetails = { error: 'Enhanced grading failed, used exact match fallback' };
+            }
+          }
+        } else if (question.type === 'essay') {
+          // Enhanced essay grading with NLP processing
+          if (question.correctAnswer && ans.answer) {
+            try {
+              const gradingResult = essayGradingService.gradeEssayAdvanced(
+                ans.answer,
+                question.correctAnswer,
+                {
+                  useStemming: true,
+                  useSynonyms: true,
+                  useStopwords: true,
+                  partialCredit: true,
+                  minMatchThreshold: 0.6 // Allow 60% match for passing
+                }
+              );
+
+              // Store detailed grading info in the answer object
+              ans.gradingDetails = {
+                score: gradingResult.score,
+                confidence: gradingResult.confidence,
+                matchedKeywords: gradingResult.matchedKeywords,
+                totalKeywords: gradingResult.totalKeywords,
+                analysis: gradingResult.analysis,
+                semanticSimilarity: gradingResult.semanticSimilarity
+              };
+
+              // Use the combined score for correctness determination
+              isCorrect = gradingResult.isCorrect;
+
+              // For essays, we'll award partial points based on the score
+              // Instead of binary correct/incorrect, use the score as a multiplier
+              const essayPoints = question.points || 1;
+              ans.points = Math.round(gradingResult.score * essayPoints * 100) / 100; // Round to 2 decimal places
+
+            } catch (error) {
+              console.error('Essay grading error:', error);
+              // Fallback to basic keyword matching if NLP fails
+              const correctKeywords = question.correctAnswer
+                .toLowerCase()
+                .split(/[\s,]+/)
+                .map(k => k.trim())
+                .filter(k => k.length > 0);
+
+              const studentKeywords = ans.answer
+                .toLowerCase()
+                .split(/[\s,]+/)
+                .map(k => k.trim())
+                .filter(k => k.length > 0);
+
+              isCorrect = correctKeywords.every(keyword =>
+                studentKeywords.includes(keyword)
+              );
+
+              ans.points = isCorrect ? (question.points || 1) : 0;
+              ans.gradingDetails = { error: 'NLP grading failed, used fallback' };
+            }
+          }
+        } else {
+          // Exact matching for other question types (multiple-choice, true-false, etc.)
+          isCorrect = question.correctAnswer === ans.answer;
+        }
+
+        if (isCorrect) {
           ans.isCorrect = true;
           ans.points = question.points || 1;
           totalScore += ans.points;

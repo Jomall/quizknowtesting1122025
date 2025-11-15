@@ -40,6 +40,14 @@ const CreateQuizPage = () => {
       allowMultipleAttempts: true,
       passingScore: 70,
     },
+    essayGradingSettings: {
+      useStemming: true,
+      useSynonyms: true,
+      removeStopwords: true,
+      allowPartialCredit: true,
+      matchThreshold: 70,
+      semanticWeight: 60,
+    },
   });
   const navigate = useNavigate();
   const { createQuiz, getQuiz } = useQuiz();
@@ -95,6 +103,14 @@ const CreateQuizPage = () => {
           showCorrectAnswers: quiz.settings?.showCorrectAnswers || true,
           allowMultipleAttempts: (quiz.settings?.maxAttempts || 1) > 1,
           passingScore: quiz.settings?.passingScore || 70,
+        },
+        essayGradingSettings: quiz.essayGradingSettings || {
+          useStemming: true,
+          useSynonyms: true,
+          removeStopwords: true,
+          allowPartialCredit: true,
+          matchThreshold: 70,
+          semanticWeight: 60,
         },
       };
       setQuizData(clientQuizData);
@@ -156,6 +172,7 @@ const CreateQuizPage = () => {
           passingScore: quizData.settings.passingScore,
           certificateEnabled: false, // default
         },
+        essayGradingSettings: quizData.essayGradingSettings,
         isPublished: true,
         ...(isEditing && { parentQuiz: quizId }),
         questions: quizData.questions.map(q => {
