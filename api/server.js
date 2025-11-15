@@ -150,6 +150,8 @@ async function connectDB() {
       serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
       socketTimeoutMS: 45000,
       maxPoolSize: 10, // Maintain up to 10 socket connections
+      bufferCommands: false, // Disable mongoose buffering
+      bufferMaxEntries: 0, // Disable mongoose buffering
     });
 
     console.log('MongoDB connected successfully');

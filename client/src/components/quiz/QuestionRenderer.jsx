@@ -169,23 +169,48 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         const segments = questionText.split(blankRegex);
         const blankCount = (questionText.match(blankRegex) || []).length;
 
-        // Ensure we have enough blanks configured
-        const effectiveBlanks = blanks.length >= blankCount ? blanks : blanks.concat(
+        // Handle legacy format (single blank without [blank] placeholders)
+        const hasLegacyFormat = !question.blanks && question.correctAnswer;
+        const effectiveBlanks = hasLegacyFormat ? [{
+          id: 'blank-1',
+          correctAnswer: question.correctAnswer || '',
+          alternativeAnswers: question.alternativeAnswers || [],
+          keywordWeights: question.keywordWeights || {},
+          gradingOptions: question.gradingOptions || {
+            usePartialCredit: true,
+            useSemanticSimilarity: true,
+            useSynonyms: true,
+            useStemming: true,
+            useFuzzyMatching: true,
+            fuzzyThreshold: 0.8,
+            semanticWeight: 0.3,
+            keywordWeight: 0.7,
+            caseSensitive: false
+          },
+          size: 'medium',
+          hint: '',
+          points: 1
+        }] : (blanks.length >= blankCount ? blanks : blanks.concat(
           Array(blankCount - blanks.length).fill().map((_, i) => ({
             id: `blank-${blanks.length + i + 1}`,
             correctAnswer: '',
             size: 'medium',
             hint: ''
           }))
-        );
+        ));
+
+        // For legacy format or if no [blank] placeholders found, add a single input at the end
+        const finalSegments = blankCount === 0 && !hasLegacyFormat ? [questionText] :
+                              blankCount === 0 && hasLegacyFormat ? [questionText, ''] : segments;
+        const finalBlankCount = finalSegments.length - 1;
 
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              {segments.map((segment, index) => (
+              {finalSegments.map((segment, index) => (
                 <React.Fragment key={index}>
                   {segment}
-                  {index < segments.length - 1 && (
+                  {index < finalSegments.length - 1 && (
                     <TextField
                       size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
                       label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
