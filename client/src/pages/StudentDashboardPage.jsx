@@ -34,6 +34,7 @@ import {
   Audiotrack as AudiotrackIcon,
   Link as LinkIcon,
   Print as PrintIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
