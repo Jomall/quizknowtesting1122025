@@ -202,7 +202,6 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         // For legacy format or if no [blank] placeholders found, add a single input at the end
         const finalSegments = blankCount === 0 && !hasLegacyFormat ? [questionText] :
                               blankCount === 0 && hasLegacyFormat ? [questionText, ''] : segments;
-        const finalBlankCount = finalSegments.length - 1;
 
         return (
           <Box>
