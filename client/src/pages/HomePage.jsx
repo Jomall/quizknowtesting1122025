@@ -19,41 +19,51 @@ import {
 import { useNavigate } from 'react-router-dom';
 import quizAPI from '../services/quizAPI';
 
-// QuizKnow Logo Component - Horizontal Flow with 3D Depth
+// QuizKnow Logo Component - Horizontal Flow with 3D Depth (Responsive)
 const QuizKnowLogo = ({ size = 40, showText = true }) => {
   const letters = ['Q', 'U', 'I', 'Z', 'K', 'N', 'O', 'W'];
   const colors = ['#1e40af', '#059669']; // Blue-Green alternating
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
       {/* White Background Container */}
       <Box
         sx={{
           bgcolor: 'white',
-          borderRadius: 4,
-          p: 3,
+          borderRadius: { xs: 2, sm: 4 },
+          p: { xs: 2, sm: 3 },
           boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 2,
+          gap: { xs: 1.5, sm: 2 },
+          maxWidth: '100%',
+          width: 'auto',
         }}
       >
         {/* Letter Squares */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 0.25, sm: 0.5 },
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           {letters.map((letter, index) => (
             <Box
               key={index}
               sx={{
-                width: size,
-                height: size,
+                width: { xs: size * 0.7, sm: size },
+                height: { xs: size * 0.7, sm: size },
                 bgcolor: colors[index % 2],
                 borderRadius: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
-                fontSize: size * 0.4,
+                fontSize: { xs: size * 0.28, sm: size * 0.4 },
                 fontWeight: 'bold',
                 position: 'relative',
                 '&::before': {
@@ -83,8 +93,9 @@ const QuizKnowLogo = ({ size = 40, showText = true }) => {
             sx={{
               fontWeight: 'bold',
               color: '#1e40af',
-              letterSpacing: 2,
+              letterSpacing: { xs: 1, sm: 2 },
               mb: 1,
+              fontSize: { xs: '1.5rem', sm: '2.125rem' },
             }}
           >
             QUIZKNOW
@@ -93,8 +104,10 @@ const QuizKnowLogo = ({ size = 40, showText = true }) => {
             variant="body1"
             sx={{
               color: '#059669',
-              fontSize: '0.9rem',
+              fontSize: { xs: '0.75rem', sm: '0.9rem' },
               fontWeight: 500,
+              lineHeight: 1.4,
+              px: { xs: 1, sm: 0 },
             }}
           >
             Master Knowledge Through Interactive Quizzes
