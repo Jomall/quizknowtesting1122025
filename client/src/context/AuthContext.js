@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import authService from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -28,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await authService.fetchUser();
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await authService.login(email, password);
       const { token, user } = response.data;
 
       localStorage.setItem('token', token);
@@ -61,26 +62,26 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null);
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await authService.register(userData);
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
-      
+
       return { success: true };
     } catch (error) {
       setError(error.response?.data?.message || 'Registration failed. Please try again.');
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed'
       };
     }
   };
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
+      await authService.logout();
     } catch (error) {
       console.error('Error logging out:', error);
     } finally {

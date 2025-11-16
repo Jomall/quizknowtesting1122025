@@ -194,7 +194,7 @@ class ShortAnswerGradingService {
   /**
    * Extract keywords from text with optional weights
    */
-  extractKeywords(text, weights = {}) {
+  extractKeywords(text, weights = {}, useStemming = true) {
     if (!text) return [];
 
     const tokens = tokenizer.tokenize(text) || [];

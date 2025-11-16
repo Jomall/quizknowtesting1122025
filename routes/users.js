@@ -1,4 +1,5 @@
 const express = require('express');
+const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Connection = require('../models/Connection');
 const Quiz = require('../models/Quiz');
@@ -553,6 +554,34 @@ router.get('/instructor-details/:id', auth, authorize('admin'), checkSuspended, 
       currentStudents,
       availableSlots: user.studentLimit - currentStudents
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Change user password (admin only)
+router.put('/change-password/:id', auth, authorize('admin'), checkSuspended, [
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array()[0].msg });
+    }
+
+    const { newPassword } = req.body;
+
+    // Find user
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update password (pre-save hook will hash it)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -4,7 +4,24 @@ require('dotenv').config();
 
 async function createAdminUser() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quizknow');
+    // Connect to the same MongoDB Memory Server used by server-test.js
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mongoServer = await MongoMemoryServer.create({
+      instance: {
+        dbName: 'quizknow-app6mongoDB',
+        port: 27017,
+      },
+      binary: {
+        version: '6.0.5',
+        downloadDir: './.mongodb-binaries',
+        platform: 'win32',
+        arch: 'x64',
+        skipMD5: true,
+      },
+    });
+    const mongoUri = mongoServer.getUri();
+    console.log('Connecting to MongoDB Memory Server for admin creation...');
+    await mongoose.connect(mongoUri);
 
     const adminUser = new User({
       username: 'admin',

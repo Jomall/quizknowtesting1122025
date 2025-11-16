@@ -15,6 +15,12 @@ import {
   ListItemText,
   ListItemAvatar,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  IconButton,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -28,6 +34,7 @@ import {
   Audiotrack as AudiotrackIcon,
   Link as LinkIcon,
   Print as PrintIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +43,7 @@ import InstructorBrowser from '../components/common/InstructorBrowser';
 import { printQuizResults } from '../utils/printResults';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const StudentDashboardPage = () => {
   const [recentQuizzes, setRecentQuizzes] = useState([]);
@@ -52,6 +59,14 @@ const StudentDashboardPage = () => {
     averageScore: 0,
     totalTime: 0,
   });
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
@@ -204,12 +219,59 @@ const StudentDashboardPage = () => {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters');
+      return;
+    }
+
+    setPasswordLoading(true);
+    setPasswordError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE_URL}/auth/change-password`, {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPasswordDialogOpen(false);
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      // Show success message (you might want to add a snackbar here)
+      alert('Password changed successfully!');
+    } catch (error) {
+      setPasswordError(error.response?.data?.message || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Welcome back, {user?.profile?.firstName || user?.username || 'Student'}!
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4" gutterBottom>
+            Welcome back, {user?.profile?.firstName || user?.username || 'Student'}!
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<LockIcon />}
+            onClick={() => setPasswordDialogOpen(true)}
+          >
+            Change Password
+          </Button>
+        </Box>
         <Typography variant="body1" color="text.secondary">
           Ready to learn? Take a quiz or review your progress.
         </Typography>
@@ -633,6 +695,59 @@ const StudentDashboardPage = () => {
           <InstructorBrowser />
         </Paper>
       </Box>
+
+      {/* Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onClose={() => setPasswordDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <LockIcon sx={{ mr: 1 }} />
+            Change Password
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <TextField
+              fullWidth
+              type="password"
+              label="Current Password"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              type="password"
+              label="New Password"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              type="password"
+              label="Confirm New Password"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            {passwordError && (
+              <Typography color="error" variant="body2">
+                {passwordError}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPasswordDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handlePasswordChange}
+            variant="contained"
+            disabled={passwordLoading}
+          >
+            {passwordLoading ? 'Changing...' : 'Change Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
