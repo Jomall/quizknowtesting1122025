@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizKnow Logo - Horizontal Flow with 3D Depth Variations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 40px;
+        }
+
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .variation {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .variation:hover {
+            transform: translateY(-3px);
+        }
+
+        .logo {
+            margin-bottom: 15px;
+        }
+
+        .horizontal-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .letter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            position: relative;
+            border-radius: 6px;
+        }
+
+        .letter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            border-radius: inherit;
+            transform: translateY(3px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .app-name {
+            font-size: 24px;
+            color: #374151;
+            margin: 12px 0;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+
+        .tagline {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .variation-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .color-info {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        /* Variation specific styles */
+        .v1 .letter:nth-child(odd) { background: #1e40af; }
+        .v1 .letter:nth-child(even) { background: #059669; }
+        .v1 .letter { width: 45px; height: 45px; }
+
+        .v2 .letter:nth-child(odd) { background: #7c3aed; }
+        .v2 .letter:nth-child(even) { background: #ea580c; }
+        .v2 .letter { width: 50px; height: 50px; }
+
+        .v3 .letter:nth-child(odd) { background: #0d9488; }
+        .v3 .letter:nth-child(even) { background: #d97706; }
+        .v3 .letter { width: 48px; height: 48px; }
+
+        .v4 .letter:nth-child(odd) { background: #1e3a8a; }
+        .v4 .letter:nth-child(even) { background: #dc2626; }
+        .v4 .letter { width: 46px; height: 46px; }
+
+        .v5 .letter:nth-child(odd) { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .v5 .letter:nth-child(even) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .v5 .letter { width: 52px; height: 52px; }
+
+        .v6 .letter:nth-child(odd) { background: #374151; }
+        .v6 .letter:nth-child(even) { background: #6b7280; }
+        .v6 .letter { width: 44px; height: 44px; }
+
+        .v7 .letter:nth-child(odd) { background: #059669; }
+        .v7 .letter:nth-child(even) { background: #1e40af; }
+        .v7 .letter { width: 47px; height: 47px; }
+
+        .v8 .letter:nth-child(odd) { background: #ea580c; }
+        .v8 .letter:nth-child(even) { background: #7c3aed; }
+        .v8 .letter { width: 49px; height: 49px; }
+
+        .v9 .letter:nth-child(odd) { background: #d97706; }
+        .v9 .letter:nth-child(even) { background: #0d9488; }
+        .v9 .letter { width: 51px; height: 51px; }
+
+        .v10 .letter:nth-child(odd) { background: #dc2626; }
+        .v10 .letter:nth-child(even) { background: #1e3a8a; }
+        .v10 .letter { width: 43px; height: 43px; }
+
+        .v11 .letter:nth-child(odd) { background: linear-gradient(45deg, #1e40af, #059669); }
+        .v11 .letter:nth-child(even) { background: linear-gradient(45deg, #059669, #1e40af); }
+        .v11 .letter { width: 46px; height: 46px; }
+
+        .v12 .letter:nth-child(odd) { background: #2563eb; }
+        .v12 .letter:nth-child(even) { background: #16a34a; }
+        .v12 .letter { width: 48px; height: 48px; }
+
+        .v13 .letter:nth-child(odd) { background: #8b5cf6; }
+        .v13 .letter:nth-child(even) { background: #f97316; }
+        .v13 .letter { width: 50px; height: 50px; }
+
+        .v14 .letter:nth-child(odd) { background: #0891b2; }
+        .v14 .letter:nth-child(even) { background: #ca8a04; }
+        .v14 .letter { width: 47px; height: 47px; }
+
+        .v15 .letter:nth-child(odd) { background: #1e293b; }
+        .v15 .letter:nth-child(even) { background: #475569; }
+        .v15 .letter { width: 45px; height: 45px; }
+
+        .v16 .letter:nth-child(odd) { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .v16 .letter:nth-child(even) { background: linear-gradient(135deg, #10b981, #047857); }
+        .v16 .letter { width: 49px; height: 49px; }
+
+        .v17 .letter:nth-child(odd) { background: #7c2d12; }
+        .v17 .letter:nth-child(even) { background: #365314; }
+        .v17 .letter { width: 46px; height: 46px; }
+
+        .v18 .letter:nth-child(odd) { background: linear-gradient(45deg, #ec4899, #be185d); }
+        .v18 .letter:nth-child(even) { background: linear-gradient(45deg, #06b6d4, #0891b2); }
+        .v18 .letter { width: 51px; height: 51px; }
+
+        .v19 .letter:nth-child(odd) { background: #4c1d95; }
+        .v19 .letter:nth-child(even) { background: #b91c1c; }
+        .v19 .letter { width: 48px; height: 48px; }
+
+        .v20 .letter:nth-child(odd) { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .v20 .letter:nth-child(even) { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .v20 .letter { width: 50px; height: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QuizKnow Logo - Horizontal Flow with 3D Depth (20 Variations)</h1>
+
+        <div class="variations-grid">
+            <div class="variation v1">
+                <div class="variation-name">Classic Blue-Green</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Blue-Green Alternating</div>
+            </div>
+
+            <div class="variation v2">
+                <div class="variation-name">Vibrant Purple-Orange</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Engage, Learn, Succeed</div>
+                <div class="color-info">Purple-Orange Alternating</div>
+            </div>
+
+            <div class="variation v3">
+                <div class="variation-name">Ocean Gold</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Deep Knowledge, Golden Achievement</div>
+                <div class="color-info">Teal-Gold Alternating</div>
+            </div>
+
+            <div class="variation v4">
+                <div class="variation-name">Bold Navy-Red</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Challenge Your Mind</div>
+                <div class="color-info">Navy-Red Alternating</div>
+            </div>
+
+            <div class="variation v5">
+                <div class="variation-name">Gradient Dream</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Colorful Learning Journey</div>
+                <div class="color-info">Blue-Purple & Pink-Red Gradients</div>
+            </div>
+
+            <div class="variation v6">
+                <div class="variation-name">Minimal Gray</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Simple Yet Powerful</div>
+                <div class="color-info">Dark-Light Gray Alternating</div>
+            </div>
+
+            <div class="variation v7">
+                <div class="variation-name">Reversed Classic</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Knowledge First, Quizzes Second</div>
+                <div class="color-info">Green-Blue Alternating</div>
+            </div>
+
+            <div class="variation v8">
+                <div class="variation-name">Autumn Vibes</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Harvest Your Knowledge</div>
+                <div class="color-info">Orange-Purple Alternating</div>
+            </div>
+
+            <div class="variation v9">
+                <div class="variation-name">Golden Teal</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Precious Learning Moments</div>
+                <div class="color-info">Gold-Teal Alternating</div>
+            </div>
+
+            <div class="variation v10">
+                <div class="variation-name">Passion Navy</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Passionate About Learning</div>
+                <div class="color-info">Red-Navy Alternating</div>
+            </div>
+
+            <div class="variation v11">
+                <div class="variation-name">Dual Gradient</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Blended Knowledge Paths</div>
+                <div class="color-info">Blue-Green & Green-Blue Gradients</div>
+            </div>
+
+            <div class="variation v12">
+                <div class="variation-name">Bright & Bold</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Bright Ideas, Bold Learning</div>
+                <div class="color-info">Bright Blue-Green Alternating</div>
+            </div>
+
+            <div class="variation v13">
+                <div class="variation-name">Royal & Warm</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Royal Knowledge, Warm Welcome</div>
+                <div class="color-info">Purple-Orange Alternating</div>
+            </div>
+
+            <div class="variation v14">
+                <div class="variation-name">Aqua Amber</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Crystal Clear Learning</div>
+                <div class="color-info">Cyan-Amber Alternating</div>
+            </div>
+
+            <div class="variation v15">
+                <div class="variation-name">Slate Spectrum</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Sophisticated Learning</div>
+                <div class="color-info">Dark-Light Slate Alternating</div>
+            </div>
+
+            <div class="variation v16">
+                <div class="variation-name">Sky & Forest</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Reach for the Sky, Root in Knowledge</div>
+                <div class="color-info">Blue-Green Gradient Alternating</div>
+            </div>
+
+            <div class="variation v17">
+                <div class="variation-name">Earth Tones</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Grounded in Learning</div>
+                <div class="color-info">Brown-Green Earth Tones</div>
+            </div>
+
+            <div class="variation v18">
+                <div class="variation-name">Neon Dreams</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Electric Learning Experience</div>
+                <div class="color-info">Pink-Cyan Gradient Alternating</div>
+            </div>
+
+            <div class="variation v19">
+                <div class="variation-name">Deep Mystery</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Unlock Hidden Knowledge</div>
+                <div class="color-info">Deep Purple-Red Alternating</div>
+            </div>
+
+            <div class="variation v20">
+                <div class="variation-name">Sunset Horizon</div>
+                <div class="logo horizontal-flow">
+                    <div class="letter">Q</div>
+                    <div class="letter">U</div>
+                    <div class="letter">I</div>
+                    <div class="letter">Z</div>
+                    <div class="letter">K</div>
+                    <div class="letter">N</div>
+                    <div class="letter">O</div>
+                    <div class="letter">W</div>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Golden Hour of Learning</div>
+                <div class="color-info">Amber-Indigo Gradient Alternating</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

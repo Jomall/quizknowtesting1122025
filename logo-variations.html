@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizKnow Logo Variations</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 40px;
+        }
+
+        .variations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .variation {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .variation:hover {
+            transform: translateY(-5px);
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        /* Variation 1: Original Blue-Green */
+        .v1 .quiz-square { background: #1e40af; }
+        .v1 .know-square { background: #059669; }
+
+        /* Variation 2: Purple-Orange */
+        .v2 .quiz-square { background: #7c3aed; }
+        .v2 .know-square { background: #ea580c; }
+
+        /* Variation 3: Teal-Gold */
+        .v3 .quiz-square { background: #0d9488; }
+        .v3 .know-square { background: #d97706; }
+
+        /* Variation 4: Navy-Red */
+        .v4 .quiz-square { background: #1e3a8a; }
+        .v4 .know-square { background: #dc2626; }
+
+        /* Variation 5: Gradient */
+        .v5 .quiz-square {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .v5 .know-square {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Variation 6: Monochrome */
+        .v6 .quiz-square { background: #374151; }
+        .v6 .know-square { background: #6b7280; }
+
+        .quiz-square, .know-square {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .app-name {
+            font-size: 28px;
+            color: #374151;
+            margin: 15px 0;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .tagline {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .variation-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+
+        .color-info {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QuizKnow Logo Variations</h1>
+
+        <div class="variations-grid">
+            <!-- Variation 1 -->
+            <div class="variation v1">
+                <div class="variation-name">Classic Blue-Green</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: #1e40af | K: #059669</div>
+            </div>
+
+            <!-- Variation 2 -->
+            <div class="variation v2">
+                <div class="variation-name">Vibrant Purple-Orange</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: #7c3aed | K: #ea580c</div>
+            </div>
+
+            <!-- Variation 3 -->
+            <div class="variation v3">
+                <div class="variation-name">Ocean Gold</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: #0d9488 | K: #d97706</div>
+            </div>
+
+            <!-- Variation 4 -->
+            <div class="variation v4">
+                <div class="variation-name">Bold Navy-Red</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: #1e3a8a | K: #dc2626</div>
+            </div>
+
+            <!-- Variation 5 -->
+            <div class="variation v5">
+                <div class="variation-name">Gradient Dream</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: Gradient Blue-Purple | K: Gradient Pink-Red</div>
+            </div>
+
+            <!-- Variation 6 -->
+            <div class="variation v6">
+                <div class="variation-name">Minimal Gray</div>
+                <div class="logo">
+                    <span class="quiz-square">Q</span>
+                    <span class="know-square">K</span>
+                </div>
+                <div class="app-name">QUIZKNOW</div>
+                <div class="tagline">Master Knowledge Through Interactive Quizzes</div>
+                <div class="color-info">Q: #374151 | K: #6b7280</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

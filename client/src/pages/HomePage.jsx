@@ -19,6 +19,92 @@ import {
 import { useNavigate } from 'react-router-dom';
 import quizAPI from '../services/quizAPI';
 
+// QuizKnow Logo Component - Horizontal Flow with 3D Depth
+const QuizKnowLogo = ({ size = 40, showText = true }) => {
+  const letters = ['Q', 'U', 'I', 'Z', 'K', 'N', 'O', 'W'];
+  const colors = ['#1e40af', '#059669']; // Blue-Green alternating
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      {/* White Background Container */}
+      <Box
+        sx={{
+          bgcolor: 'white',
+          borderRadius: 4,
+          p: 3,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+        }}
+      >
+        {/* Letter Squares */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {letters.map((letter, index) => (
+            <Box
+              key={index}
+              sx={{
+                width: size,
+                height: size,
+                bgcolor: colors[index % 2],
+                borderRadius: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: size * 0.4,
+                fontWeight: 'bold',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgcolor: 'rgba(0,0,0,0.3)',
+                  borderRadius: 1,
+                  transform: 'translateY(2px)',
+                  zIndex: -1,
+                },
+              }}
+            >
+              {letter}
+            </Box>
+          ))}
+        </Box>
+
+        {/* Logo Text */}
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{
+              fontWeight: 'bold',
+              color: '#1e40af',
+              letterSpacing: 2,
+              mb: 1,
+            }}
+          >
+            QUIZKNOW
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#059669',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+            }}
+          >
+            Master Knowledge Through Interactive Quizzes
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
 
@@ -105,9 +191,9 @@ const HomePage = () => {
         }}
       >
         <Container maxWidth="md">
-          <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Welcome to QuizKnow
-          </Typography>
+          <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+            <QuizKnowLogo size={80} />
+          </Box>
           <Typography variant="h5" sx={{ mb: 4, opacity: 0.9 }}>
             Transform learning with interactive quizzes and comprehensive analytics
           </Typography>
