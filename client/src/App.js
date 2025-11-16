@@ -22,6 +22,7 @@ import QuizResultsPage from './pages/QuizResultsPage';
 import ProfilePage from './pages/ProfilePage';
 import QuizReviewPage from './pages/QuizReviewPage';
 import QuizSubmissionReview from './components/quiz/QuizSubmissionReview';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
@@ -97,6 +98,11 @@ function App() {
               <Route path="/admin-dashboard" element={
                 <ProtectedRoute>
                   <AdminDashboardPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/change-password" element={
+                <ProtectedRoute>
+                  <ChangePasswordPage />
                 </ProtectedRoute>
               } />
               </Routes>

@@ -52,6 +52,7 @@ import {
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
   Print as PrintIcon,
   Download as DownloadIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import html2pdf from 'html2pdf.js';
 import { useNavigate } from 'react-router-dom';
@@ -928,6 +929,24 @@ const InstructorDashboardPage = () => {
             <CardActions>
               <Button size="small" variant="contained" fullWidth onClick={handleViewStudents}>
                 View Students
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={2}>
+                <LockIcon color="warning" sx={{ mr: 1 }} />
+                <Typography variant="h6">Change Password</Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Update your account password
+              </Typography>
+            </CardContent>
+            <CardActions>
+              <Button size="small" variant="contained" fullWidth onClick={() => navigate('/change-password')}>
+                Change Password
               </Button>
             </CardActions>
           </Card>
