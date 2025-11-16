@@ -29,6 +29,7 @@ import {
   School,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import QuizKnowLogo from '../common/QuizKnowLogo';
 
 const Header = ({ user, onLogout }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -135,14 +136,9 @@ const Header = ({ user, onLogout }) => {
             <MenuIcon />
           </IconButton>
           
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, cursor: 'pointer' }}
-            onClick={() => navigate('/')}
-          >
-            QuizKnow
-          </Typography>
+          <Box sx={{ flexGrow: 1, cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => navigate('/')}>
+            <QuizKnowLogo variant="text-only" />
+          </Box>
 
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
             <Button

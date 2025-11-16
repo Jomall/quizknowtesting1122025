@@ -16,6 +16,7 @@ import {
   GitHub,
   Email,
 } from '@mui/icons-material';
+import QuizKnowLogo from '../common/QuizKnowLogo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -34,9 +35,9 @@ const Footer = () => {
       <Container maxWidth="lg">
         <Grid container spacing={4} justifyContent="space-evenly">
           <Grid item xs={12} sm={6} md={3}>
-            <Typography variant="h6" color="text.primary" gutterBottom>
-              QuizKnow
-            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <QuizKnowLogo variant="text-only" />
+            </Box>
             <Typography variant="body2" color="text.secondary">
               Empowering education through interactive quizzes and assessments.
               Create, share, and learn with our comprehensive quiz platform.
