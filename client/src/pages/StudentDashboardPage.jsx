@@ -40,7 +40,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import InstructorBrowser from '../components/common/InstructorBrowser';
 import { printQuizResults } from '../utils/printResults';
-import axios from 'axios';
+import authService from '../services/authService';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -233,13 +233,7 @@ const StudentDashboardPage = () => {
     setPasswordError('');
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/auth/change-password`, {
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
 
       setPasswordDialogOpen(false);
       setPasswordForm({

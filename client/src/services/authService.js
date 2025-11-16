@@ -22,6 +22,14 @@ const authService = {
   fetchUser: () => {
     return axios.get(`${API_BASE_URL}/auth/me`);
   },
+
+  // Change password endpoint
+  changePassword: (currentPassword, newPassword) => {
+    return axios.put(`${API_BASE_URL}/auth/change-password`, {
+      currentPassword,
+      newPassword
+    });
+  },
 };
 
 export default authService;
