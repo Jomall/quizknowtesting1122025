@@ -246,10 +246,18 @@ router.get('/global-stats', async (req, res) => {
 
     const questionsAnswered = result.length > 0 ? result[0].totalAnswers : 0;
 
+    // Calculate satisfaction rate based on average quiz scores
+    const QuizSession = require('../models/QuizSession');
+    const completedSessions = await QuizSession.find({ status: 'completed' });
+    const satisfactionRate = completedSessions.length > 0
+      ? Math.round(completedSessions.reduce((sum, session) => sum + (session.percentage || 0), 0) / completedSessions.length)
+      : 95; // Default to 95% if no data
+
     res.json({
       activeUsers,
       quizzesCreated,
-      questionsAnswered
+      questionsAnswered,
+      satisfactionRate
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

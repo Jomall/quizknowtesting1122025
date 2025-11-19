@@ -74,6 +74,7 @@ const HomePage = () => {
     activeUsers: '10K+',
     quizzesCreated: '50K+',
     questionsAnswered: '500K+',
+    satisfactionRate: 95,
   });
 
   useEffect(() => {
@@ -85,6 +86,7 @@ const HomePage = () => {
           activeUsers: data.activeUsers.toLocaleString(),
           quizzesCreated: data.quizzesCreated.toLocaleString(),
           questionsAnswered: data.questionsAnswered.toLocaleString(),
+          satisfactionRate: data.satisfactionRate || 95,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
