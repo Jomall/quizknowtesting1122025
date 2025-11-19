@@ -84,6 +84,8 @@ class ShortAnswerGradingService {
       matchedKeywords: 0,
       totalKeywords: 0,
       semanticSimilarity: 0,
+      misconception: { detected: false },
+      offTopic: { detected: false },
       analysis: ''
     };
 
@@ -118,6 +120,10 @@ class ShortAnswerGradingService {
         (keywordResult.score * keywordWeight) + (semanticSimilarity * semanticWeight) :
         (keywordResult.score >= 1.0 ? 1.0 : 0.0);
 
+      // Detect misconceptions and off-topic
+      const misconceptionCheck = this.detectMisconceptions(studentAnswer, correctAnswer.text);
+      const offTopicCheck = this.detectOffTopic(studentAnswer, correctAnswer.text);
+
       // Keep the best result
       if (combinedScore > bestResult.score) {
         bestResult = {
@@ -126,7 +132,9 @@ class ShortAnswerGradingService {
           matchedKeywords: keywordResult.matched,
           totalKeywords: keywordResult.total,
           semanticSimilarity,
-          analysis: this.generateAnalysis(keywordResult, semanticSimilarity, usePartialCredit)
+          misconception: misconceptionCheck,
+          offTopic: offTopicCheck,
+          analysis: this.generateAnalysis(keywordResult, semanticSimilarity, usePartialCredit, misconceptionCheck, offTopicCheck)
         };
       }
     }
@@ -138,6 +146,8 @@ class ShortAnswerGradingService {
       matchedKeywords: bestResult.matchedKeywords,
       totalKeywords: bestResult.totalKeywords,
       semanticSimilarity: bestResult.semanticSimilarity,
+      misconception: bestResult.misconception,
+      offTopic: bestResult.offTopic,
       analysis: bestResult.analysis
     };
   }
@@ -338,22 +348,71 @@ class ShortAnswerGradingService {
   }
 
   /**
+   * Detect common misconceptions in student answers
+   */
+  detectMisconceptions(studentAnswer, correctAnswer) {
+    const misconceptions = [
+      { pattern: /mitochondria.*stor.*food/i, misconception: 'Mitochondria store food' },
+      { pattern: /power.?plant.*shape/i, misconception: 'Powerhouse due to shape' },
+      { pattern: /photosynthesis.*animal/i, misconception: 'Photosynthesis in animals' },
+      { pattern: /chlorophyll.*blue/i, misconception: 'Chlorophyll is blue' },
+      { pattern: /plant.*not.*need.*sunlight|sunlight.*not.*need/i, misconception: 'Plants don\'t need sunlight' }
+    ];
+
+    for (const mis of misconceptions) {
+      if (mis.pattern.test(studentAnswer)) {
+        return { detected: true, type: mis.misconception };
+      }
+    }
+
+    return { detected: false };
+  }
+
+  /**
+   * Detect off-topic or irrelevant answers
+   */
+  detectOffTopic(studentAnswer, correctAnswer) {
+    // Simple heuristic: if semantic similarity is very low (< 0.2) and few keywords match
+    const semanticSim = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
+    const studentWords = this.extractKeywords(this.normalizeText(studentAnswer));
+    const correctWords = this.extractKeywords(this.normalizeText(correctAnswer));
+
+    const commonWords = studentWords.filter(sw =>
+      correctWords.some(cw => cw.word === sw.word || cw.stem === sw.stem)
+    ).length;
+
+    const offTopic = semanticSim < 0.2 && commonWords < 1;
+
+    return { detected: offTopic, similarity: semanticSim, commonWords };
+  }
+
+  /**
    * Generate detailed analysis text
    */
-  generateAnalysis(keywordResult, semanticSimilarity, usePartialCredit) {
+  generateAnalysis(keywordResult, semanticSimilarity, usePartialCredit, misconceptionCheck, offTopicCheck) {
     const keywordPercent = keywordResult.total > 0 ?
       Math.round((keywordResult.matched / keywordResult.total) * 100) : 0;
 
     const semanticPercent = Math.round(semanticSimilarity * 100);
 
+    let analysis = '';
+
+    if (offTopicCheck.detected) {
+      analysis = 'Off-topic answer detected. ';
+    } else if (misconceptionCheck.detected) {
+      analysis = `Misconception detected: ${misconceptionCheck.type}. `;
+    }
+
     if (usePartialCredit) {
-      return `Keyword match: ${keywordResult.matched}/${keywordResult.total} (${keywordPercent}%) | Semantic similarity: ${semanticPercent}%`;
+      analysis += `Keyword match: ${keywordResult.matched}/${keywordResult.total} (${keywordPercent}%) | Semantic similarity: ${semanticPercent}%`;
     } else {
       const isCorrect = keywordResult.matched === keywordResult.total;
-      return isCorrect ?
+      analysis += isCorrect ?
         `Perfect keyword match (${keywordResult.total}/${keywordResult.total})` :
         `Partial match: ${keywordResult.matched}/${keywordResult.total} keywords found`;
     }
+
+    return analysis;
   }
 }
 

@@ -6,7 +6,7 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const stopwords = natural.stopwords;
 
-// Basic synonym dictionary (can be expanded)
+// Enhanced synonym dictionary for short answer grading
 const SYNONYM_DICT = {
   'car': ['automobile', 'vehicle', 'auto'],
   'big': ['large', 'huge', 'enormous'],
@@ -35,7 +35,19 @@ const SYNONYM_DICT = {
   'through': ['via', 'by', 'through'],
   'called': ['named', 'known as', 'referred to as'],
   'process': ['method', 'procedure', 'way'],
-  'is': ['is', 'represents', 'means']
+  'is': ['is', 'represents', 'means'],
+  // Short answer specific terms
+  'mitochondria': ['mitochondrion', 'powerhouse', 'cell powerhouse'],
+  'atp': ['adenosine triphosphate', 'energy currency'],
+  'cellular respiration': ['respiration', 'cell respiration'],
+  'glucose': ['sugar', 'blood sugar'],
+  'nutrients': ['nutrient', 'food molecules'],
+  'movement': ['motion', 'locomotion'],
+  'growth': ['growing', 'development'],
+  'explain': ['describe', 'elaborate', 'clarify'],
+  'compare': ['contrast', 'differentiate'],
+  'analyze': ['examine', 'break down'],
+  'evaluate': ['assess', 'judge']
 };
 
 class EssayGradingService {
