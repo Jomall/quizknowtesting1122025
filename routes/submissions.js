@@ -37,24 +37,27 @@ router.post('/', auth, checkApproved, async (req, res) => {
       return res.status(403).json({ message: 'Maximum attempts reached for this quiz' });
     }
 
-    // Calculate score
+    // Calculate score based on points earned
     let score = 0;
     const totalQuestions = quiz.questions.length;
+    const maxScore = quiz.questions.reduce((total, q) => total + (q.points || 1), 0);
 
     const submissionAnswers = answers.map(answer => {
       const question = quiz.questions.find(q => q._id.toString() === answer.questionId);
       const isCorrect = question && question.correctAnswer === answer.answer;
+      const pointsEarned = isCorrect ? (question?.points || 1) : 0;
 
-      if (isCorrect) score++;
+      if (isCorrect) score += pointsEarned;
 
       return {
         questionId: answer.questionId,
         answer: answer.answer,
-        isCorrect
+        isCorrect,
+        pointsEarned
       };
     });
 
-    const percentage = (score / totalQuestions) * 100;
+    const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
     // Create QuizSession for consistency
     const QuizSession = require('../models/QuizSession');
