@@ -56,7 +56,10 @@ class EssayGradingService {
     this.nlp = compromise;
     this.bertModel = null;
     this.sentenceTokenizer = new SentenceTokenizer();
-    this.initializeBERT();
+    // Disable BERT loading in Vercel serverless environment
+    if (!process.env.VERCEL) {
+      this.initializeBERT();
+    }
   }
 
   /**
