@@ -190,7 +190,10 @@ class ShortAnswerGradingService {
     this.gradingProfiles = this.initializeGradingProfiles();
     this.feedbackTemplates = this.initializeFeedbackTemplates();
     this.misconceptionPatterns = this.initializeMisconceptionPatterns();
-    this.initializeBERT();
+    // Disable BERT loading in Vercel serverless environment
+    if (!process.env.VERCEL) {
+      this.initializeBERT();
+    }
   }
 
   /**
