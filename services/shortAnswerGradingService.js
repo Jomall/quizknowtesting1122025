@@ -1,5 +1,7 @@
 const natural = require('natural');
 const compromise = require('compromise');
+const { pipeline } = require('@xenova/transformers');
+const SentenceTokenizer = require('sentence-tokenizer');
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
@@ -39,9 +41,156 @@ const SYNONYM_DICT = {
 };
 
 class ShortAnswerGradingService {
+  /**
+   * Initialize BERT model for advanced semantic analysis
+   */
+  async initializeBERT() {
+    try {
+      this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      console.log('BERT model loaded successfully for short answer grading');
+    } catch (error) {
+      console.error('Failed to load BERT model for short answer grading:', error);
+      this.bertModel = null;
+    }
+  }
+
+  /**
+   * Initialize grading profiles for different subjects
+   */
+  initializeGradingProfiles() {
+    return {
+      default: {
+        keywordWeight: 0.4,
+        semanticWeight: 0.3,
+        intentWeight: 0.1,
+        completenessWeight: 0.1,
+        structureWeight: 0.05,
+        qualityWeight: 0.05,
+        useStemming: true,
+        useSynonyms: true,
+        useFuzzyMatching: true,
+        fuzzyThreshold: 0.8
+      },
+      science: {
+        keywordWeight: 0.5,
+        semanticWeight: 0.2,
+        intentWeight: 0.1,
+        completenessWeight: 0.15,
+        structureWeight: 0.03,
+        qualityWeight: 0.02,
+        useStemming: true,
+        useSynonyms: true,
+        useFuzzyMatching: true,
+        fuzzyThreshold: 0.85
+      },
+      math: {
+        keywordWeight: 0.6,
+        semanticWeight: 0.1,
+        intentWeight: 0.1,
+        completenessWeight: 0.15,
+        structureWeight: 0.03,
+        qualityWeight: 0.02,
+        useStemming: false,
+        useSynonyms: false,
+        useFuzzyMatching: true,
+        fuzzyThreshold: 0.9
+      },
+      literature: {
+        keywordWeight: 0.3,
+        semanticWeight: 0.4,
+        intentWeight: 0.15,
+        completenessWeight: 0.1,
+        structureWeight: 0.03,
+        qualityWeight: 0.02,
+        useStemming: true,
+        useSynonyms: true,
+        useFuzzyMatching: false
+      },
+      history: {
+        keywordWeight: 0.4,
+        semanticWeight: 0.3,
+        intentWeight: 0.1,
+        completenessWeight: 0.15,
+        structureWeight: 0.03,
+        qualityWeight: 0.02,
+        useStemming: true,
+        useSynonyms: true,
+        useFuzzyMatching: true,
+        fuzzyThreshold: 0.8
+      }
+    };
+  }
+
+  /**
+   * Initialize feedback templates
+   */
+  initializeFeedbackTemplates() {
+    return {
+      excellent: [
+        "Excellent answer! You demonstrated clear understanding.",
+        "Outstanding work! Your answer shows deep comprehension.",
+        "Perfect! You've captured all the key elements."
+      ],
+      good: [
+        "Good answer with solid understanding.",
+        "Well done! You covered the main points.",
+        "Nice work! Your answer shows good comprehension."
+      ],
+      partial: [
+        "Partial understanding shown. Consider reviewing the key concepts.",
+        "You have some correct elements. Focus on the missing aspects.",
+        "Decent attempt, but some key points are missing."
+      ],
+      misconception: [
+        "There's a common misconception here. The correct understanding is: {correction}",
+        "This reflects a typical misunderstanding. Here's the right approach: {correction}",
+        "You may have confused this with a similar concept. The accurate view is: {correction}"
+      ],
+      offTopic: [
+        "Your answer seems off-topic. Please focus on the question asked.",
+        "This doesn't address the question. Try to relate your answer to the topic.",
+        "The response doesn't match the question's requirements."
+      ]
+    };
+  }
+
+  /**
+   * Initialize misconception patterns for different subjects
+   */
+  initializeMisconceptionPatterns() {
+    return {
+      science: [
+        { pattern: /mitochondria.*stor.*food/i, misconception: 'Mitochondria store food', correction: 'Mitochondria are the powerhouse of the cell, converting energy from food' },
+        { pattern: /power.?plant.*shape/i, misconception: 'Powerhouse due to shape', correction: 'Mitochondria are called powerhouse due to their energy production function' },
+        { pattern: /photosynthesis.*animal/i, misconception: 'Photosynthesis in animals', correction: 'Photosynthesis occurs only in plants and some microorganisms' },
+        { pattern: /chlorophyll.*blue/i, misconception: 'Chlorophyll is blue', correction: 'Chlorophyll is green, but reflects green light' },
+        { pattern: /plant.*not.*need.*sunlight/i, misconception: 'Plants don\'t need sunlight', correction: 'Plants require sunlight for photosynthesis' }
+      ],
+      biology: [
+        { pattern: /dna.*protein/i, misconception: 'DNA is protein', correction: 'DNA is a nucleic acid that contains genetic information' },
+        { pattern: /evolution.*goal/i, misconception: 'Evolution has a goal', correction: 'Evolution is a process without predetermined goals' },
+        { pattern: /genes.*blueprint/i, misconception: 'Genes are blueprints', correction: 'Genes provide instructions for protein synthesis' }
+      ],
+      physics: [
+        { pattern: /heavier.*fall.*faster/i, misconception: 'Heavier objects fall faster', correction: 'All objects fall at the same rate in vacuum' },
+        { pattern: /energy.*created/i, misconception: 'Energy can be created', correction: 'Energy can only be converted from one form to another' }
+      ],
+      chemistry: [
+        { pattern: /burning.*oxygen/i, misconception: 'Burning releases oxygen', correction: 'Burning consumes oxygen and releases carbon dioxide' },
+        { pattern: /acid.*proton/i, misconception: 'Acids donate protons', correction: 'Acids donate H+ ions in aqueous solution' }
+      ]
+    };
+  }
+
   constructor() {
     this.nlp = compromise;
     this.stemmer = stemmer;
+    this.bertModel = null;
+    this.sentenceTokenizer = new SentenceTokenizer();
+    this.gradingProfiles = this.initializeGradingProfiles();
+    this.feedbackTemplates = this.initializeFeedbackTemplates();
+    this.misconceptionPatterns = this.initializeMisconceptionPatterns();
+    this.initializeBERT();
   }
 
   /**

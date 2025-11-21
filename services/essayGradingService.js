@@ -1,5 +1,6 @@
 const natural = require('natural');
 const compromise = require('compromise');
+const SentenceTokenizer = require('sentence-tokenizer');
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
@@ -53,6 +54,23 @@ const SYNONYM_DICT = {
 class EssayGradingService {
   constructor() {
     this.nlp = compromise;
+    this.bertModel = null;
+    this.sentenceTokenizer = new SentenceTokenizer();
+    this.initializeBERT();
+  }
+
+  /**
+   * Initialize BERT model for advanced semantic analysis
+   */
+  async initializeBERT() {
+    try {
+      // Load pre-trained BERT model for semantic similarity
+      this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      console.log('BERT model loaded successfully');
+    } catch (error) {
+      console.error('Failed to load BERT model:', error);
+      // Fallback to basic similarity if BERT fails
+    }
   }
 
   /**
@@ -317,6 +335,227 @@ class EssayGradingService {
       combinedScore,
       analysis: `${keywordResult.analysis} | Semantic similarity: ${Math.round(semanticSimilarity * 100)}%`
     };
+  }
+
+  /**
+   * Advanced BERT-based semantic similarity
+   */
+  async calculateBERTSimilarity(text1, text2) {
+    if (!this.bertModel) {
+      console.warn('BERT model not loaded, falling back to basic similarity');
+      return this.calculateSemanticSimilarity(text1, text2);
+    }
+
+    try {
+      // Get embeddings for both texts
+      const embedding1 = await this.bertModel(text1, { pooling: 'mean', normalize: true });
+      const embedding2 = await this.bertModel(text2, { pooling: 'mean', normalize: true });
+
+      // Calculate cosine similarity
+      const similarity = this.cosineSimilarity(embedding1.data, embedding2.data);
+      return similarity;
+    } catch (error) {
+      console.error('BERT similarity calculation failed:', error);
+      return this.calculateSemanticSimilarity(text1, text2);
+    }
+  }
+
+  /**
+   * Calculate cosine similarity between two vectors
+   */
+  cosineSimilarity(vec1, vec2) {
+    let dotProduct = 0;
+    let norm1 = 0;
+    let norm2 = 0;
+
+    for (let i = 0; i < vec1.length; i++) {
+      dotProduct += vec1[i] * vec2[i];
+      norm1 += vec1[i] * vec1[i];
+      norm2 += vec2[i] * vec2[i];
+    }
+
+    norm1 = Math.sqrt(norm1);
+    norm2 = Math.sqrt(norm2);
+
+    if (norm1 === 0 || norm2 === 0) return 0;
+
+    return dotProduct / (norm1 * norm2);
+  }
+
+  /**
+   * Sentence-level analysis for coherence and logical flow
+   */
+  analyzeSentenceStructure(text) {
+    const sentences = this.sentenceTokenizer.sentences(text);
+
+    const analysis = {
+      totalSentences: sentences.length,
+      avgSentenceLength: 0,
+      coherenceScore: 0,
+      logicalFlow: [],
+      transitions: []
+    };
+
+    if (sentences.length === 0) return analysis;
+
+    // Calculate average sentence length
+    const totalWords = sentences.reduce((sum, sentence) => sum + sentence.split(' ').length, 0);
+    analysis.avgSentenceLength = totalWords / sentences.length;
+
+    // Analyze transitions and coherence
+    const transitionWords = ['however', 'therefore', 'thus', 'consequently', 'furthermore', 'moreover', 'in addition', 'similarly', 'likewise', 'on the other hand', 'in contrast', 'although', 'despite', 'while', 'whereas'];
+
+    sentences.forEach((sentence, index) => {
+      const lowerSentence = sentence.toLowerCase();
+
+      // Check for transition words
+      const hasTransition = transitionWords.some(word => lowerSentence.includes(word));
+      if (hasTransition) {
+        analysis.transitions.push({ sentence: index + 1, transition: true });
+      }
+
+      // Basic coherence check - look for repeated concepts
+      if (index > 0) {
+        const prevSentence = sentences[index - 1].toLowerCase();
+        const commonWords = this.findCommonWords(prevSentence, lowerSentence);
+        analysis.logicalFlow.push({
+          sentence: index + 1,
+          commonWords: commonWords.length,
+          coherence: commonWords.length > 2 ? 'good' : 'weak'
+        });
+      }
+    });
+
+    // Calculate overall coherence score
+    const goodTransitions = analysis.logicalFlow.filter(flow => flow.coherence === 'good').length;
+    analysis.coherenceScore = analysis.logicalFlow.length > 0 ? goodTransitions / analysis.logicalFlow.length : 0;
+
+    return analysis;
+  }
+
+  /**
+   * Find common meaningful words between two sentences
+   */
+  findCommonWords(sentence1, sentence2) {
+    const words1 = sentence1.split(' ').filter(word => word.length > 3 && !stopwords.includes(word));
+    const words2 = sentence2.split(' ').filter(word => word.length > 3 && !stopwords.includes(word));
+
+    const stemmed1 = words1.map(word => stemmer.stem(word));
+    const stemmed2 = words2.map(word => stemmer.stem(word));
+
+    return stemmed1.filter(word => stemmed2.includes(word));
+  }
+
+  /**
+   * Named Entity Recognition for key concepts
+   */
+  extractNamedEntities(text) {
+    const doc = this.nlp(text);
+
+    const entities = {
+      organizations: doc.organizations().out('array'),
+      people: doc.people().out('array'),
+      places: doc.places().out('array'),
+      dates: doc.dates().out('array'),
+      numbers: doc.numbers().out('array'),
+      technicalTerms: []
+    };
+
+    // Extract potential technical terms (capitalized words, scientific terms)
+    const sentences = this.sentenceTokenizer.sentences(text);
+    sentences.forEach(sentence => {
+      const words = sentence.split(' ');
+      words.forEach(word => {
+        // Check for technical/scientific terms
+        if (word.length > 4 && /^[A-Z][a-z]+$/.test(word)) {
+          entities.technicalTerms.push(word);
+        }
+      });
+    });
+
+    return entities;
+  }
+
+  /**
+   * Comprehensive essay grading with all advanced features
+   */
+  async gradeEssayComprehensive(studentAnswer, correctAnswer, rubric = {}, options = {}) {
+    const {
+      useBERT = true,
+      analyzeSentences = true,
+      extractEntities = true,
+      weights = {
+        keywords: 0.4,
+        semantics: 0.3,
+        structure: 0.2,
+        entities: 0.1
+      }
+    } = options;
+
+    // Basic keyword grading
+    const keywordResult = this.gradeEssay(studentAnswer, correctAnswer, options);
+
+    // BERT-based semantic similarity
+    let semanticSimilarity = 0;
+    if (useBERT) {
+      semanticSimilarity = await this.calculateBERTSimilarity(studentAnswer, correctAnswer);
+    } else {
+      semanticSimilarity = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
+    }
+
+    // Sentence structure analysis
+    let sentenceAnalysis = {};
+    if (analyzeSentences) {
+      sentenceAnalysis = this.analyzeSentenceStructure(studentAnswer);
+    }
+
+    // Named entity extraction
+    let entities = {};
+    if (extractEntities) {
+      entities = this.extractNamedEntities(studentAnswer);
+    }
+
+    // Calculate weighted score
+    const keywordScore = keywordResult.score * weights.keywords;
+    const semanticScore = semanticSimilarity * weights.semantics;
+    const structureScore = sentenceAnalysis.coherenceScore * weights.structure;
+    const entityScore = (entities.technicalTerms.length > 0 ? 0.5 : 0) * weights.entities;
+
+    const totalScore = keywordScore + semanticScore + structureScore + entityScore;
+
+    return {
+      ...keywordResult,
+      score: Math.min(totalScore, 1.0),
+      semanticSimilarity,
+      sentenceAnalysis,
+      entities,
+      componentScores: {
+        keywords: keywordScore,
+        semantics: semanticScore,
+        structure: structureScore,
+        entities: entityScore
+      },
+      analysis: this.generateComprehensiveAnalysis(keywordResult, semanticSimilarity, sentenceAnalysis, entities)
+    };
+  }
+
+  /**
+   * Generate comprehensive analysis text
+   */
+  generateComprehensiveAnalysis(keywordResult, semanticSimilarity, sentenceAnalysis, entities) {
+    let analysis = keywordResult.analysis;
+
+    analysis += ` | Semantic similarity: ${Math.round(semanticSimilarity * 100)}%`;
+
+    if (sentenceAnalysis.totalSentences > 0) {
+      analysis += ` | Sentences: ${sentenceAnalysis.totalSentences}, Coherence: ${Math.round(sentenceAnalysis.coherenceScore * 100)}%`;
+    }
+
+    if (entities.technicalTerms && entities.technicalTerms.length > 0) {
+      analysis += ` | Technical terms: ${entities.technicalTerms.length}`;
+    }
+
+    return analysis;
   }
 }
 
