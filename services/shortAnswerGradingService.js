@@ -1,6 +1,6 @@
 const natural = require('natural');
 const compromise = require('compromise');
-const { pipeline } = require('@xenova/transformers');
+// const { pipeline } = require('@xenova/transformers'); // Moved to dynamic import
 const SentenceTokenizer = require('sentence-tokenizer');
 
 // Initialize NLP tools
