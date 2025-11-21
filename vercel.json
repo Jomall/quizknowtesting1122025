@@ -26,8 +26,8 @@
   "outputDirectory": "client/build",
   "env": {
     "NODE_ENV": "production",
-    "MONGODB_URI": "mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/",
-    "JWT_SECRET": "your-super-secret-jwt-key-change-in-production",
+    "MONGODB_URI": "mongodb+srv://Jomall:Jaedon@532@quizknow-cluster.9iwzfgz.mongodb.net/quizknow",
+    "JWT_SECRET": "super-secret-jwt-key-for-production-2024",
     "BLOB_READ_WRITE_TOKEN": "vercel_blob_rw_lpB2hxhVUH660AQ0_gl6PfnnmQlzgIbfH51v718K1VyIOA0"
   }
 }
