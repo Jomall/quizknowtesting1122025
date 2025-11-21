@@ -17,27 +17,27 @@ axios.interceptors.request.use(
 const authService = {
   // Login endpoint
   login: (email, password) => {
-    return axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+    return axios.post(`${API_BASE_URL}/users/login`, { email, password });
   },
 
   // Register endpoint
   register: (userData) => {
-    return axios.post(`${API_BASE_URL}/auth/register`, userData);
+    return axios.post(`${API_BASE_URL}/users/register`, userData);
   },
 
   // Logout endpoint
   logout: () => {
-    return axios.post(`${API_BASE_URL}/auth/logout`);
+    return axios.post(`${API_BASE_URL}/users/logout`);
   },
 
   // Fetch current user endpoint
   fetchUser: () => {
-    return axios.get(`${API_BASE_URL}/auth/me`);
+    return axios.get(`${API_BASE_URL}/users/me`);
   },
 
   // Change password endpoint
   changePassword: (currentPassword, newPassword) => {
-    return axios.put(`${API_BASE_URL}/auth/change-password`, {
+    return axios.put(`${API_BASE_URL}/users/change-password`, {
       currentPassword,
       newPassword
     });
