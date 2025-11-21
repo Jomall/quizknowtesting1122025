@@ -138,25 +138,43 @@ app.use('/api/content', contentRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/submissions', submissionRoutes);
 
-// Database connection
+// Database connection with caching for serverless
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 async function connectDB() {
-  try {
+  if (cached.conn) {
+    console.log('Using cached MongoDB connection');
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quizknow';
     console.log('Connecting to MongoDB at:', mongoUri);
 
-    await mongoose.connect(mongoUri, {
+    cached.promise = mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
       socketTimeoutMS: 45000,
       maxPoolSize: 10, // Maintain up to 10 socket connections
+    }).then((mongoose) => {
+      console.log('MongoDB connected successfully');
+      return mongoose;
     });
+  }
 
-    console.log('MongoDB connected successfully');
+  try {
+    cached.conn = await cached.promise;
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    throw err; // Re-throw to prevent app from starting without DB
+    throw err;
   }
+
+  return cached.conn;
 }
 
 // Initialize database and other async operations
