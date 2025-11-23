@@ -1,6 +1,6 @@
 const natural = require('natural');
 const compromise = require('compromise');
-// const { pipeline } = require('@xenova/transformers'); // Moved to dynamic import
+const { pipeline } = require('@xenova/transformers');
 const SentenceTokenizer = require('sentence-tokenizer');
 
 // Initialize NLP tools
@@ -41,9 +41,20 @@ const SYNONYM_DICT = {
 };
 
 class ShortAnswerGradingService {
-  /**
-   * Initialize BERT model for advanced semantic analysis
-   */
+  constructor() {
+    this.nlp = compromise;
+    this.stemmer = stemmer;
+    this.bertModel = null;
+    this.sentenceTokenizer = new SentenceTokenizer();
+    this.gradingProfiles = this.initializeGradingProfiles();
+    this.feedbackTemplates = this.initializeFeedbackTemplates();
+    this.misconceptionPatterns = this.initializeMisconceptionPatterns();
+    // Disable BERT loading in Vercel serverless environment
+    if (!process.env.VERCEL) {
+      this.initializeBERT();
+    }
+  }
+
   async initializeBERT() {
     try {
       this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
@@ -54,9 +65,6 @@ class ShortAnswerGradingService {
     }
   }
 
-  /**
-   * Initialize grading profiles for different subjects
-   */
   initializeGradingProfiles() {
     return {
       default: {
@@ -121,9 +129,6 @@ class ShortAnswerGradingService {
     };
   }
 
-  /**
-   * Initialize feedback templates
-   */
   initializeFeedbackTemplates() {
     return {
       excellent: [
@@ -154,9 +159,6 @@ class ShortAnswerGradingService {
     };
   }
 
-  /**
-   * Initialize misconception patterns for different subjects
-   */
   initializeMisconceptionPatterns() {
     return {
       science: [
@@ -182,28 +184,7 @@ class ShortAnswerGradingService {
     };
   }
 
-  constructor() {
-    this.nlp = compromise;
-    this.stemmer = stemmer;
-    this.bertModel = null;
-    this.sentenceTokenizer = new SentenceTokenizer();
-    this.gradingProfiles = this.initializeGradingProfiles();
-    this.feedbackTemplates = this.initializeFeedbackTemplates();
-    this.misconceptionPatterns = this.initializeMisconceptionPatterns();
-    // Disable BERT loading in Vercel serverless environment
-    if (!process.env.VERCEL) {
-      this.initializeBERT();
-    }
-  }
-
-  /**
-   * Enhanced short answer grading with multiple features
-   * @param {string} studentAnswer - The student's answer
-   * @param {object} questionConfig - Question configuration including correct answers, weights, etc.
-   * @param {object} options - Grading options
-   * @returns {object} Grading result with detailed analysis
-   */
-  gradeShortAnswer(studentAnswer, questionConfig, options = {}) {
+  async gradeShortAnswer(studentAnswer, questionConfig, options = {}) {
     const {
       usePartialCredit = true,
       useSemanticSimilarity = true,
@@ -224,11 +205,25 @@ class ShortAnswerGradingService {
       };
     }
 
-    // Normalize student answer
     const normalizedStudent = this.normalizeText(studentAnswer);
-
-    // Get all acceptable answers (primary + alternatives)
     const acceptableAnswers = this.getAcceptableAnswers(questionConfig);
+
+    // Boost score if exact match is found (case insensitive trimmed)
+    for (const correctAnswer of acceptableAnswers) {
+      if (normalizedStudent === this.normalizeText(correctAnswer.text)) {
+        return {
+          isCorrect: true,
+          score: 1.0,
+          confidence: 1.0,
+          matchedKeywords: correctAnswer.text.split(' ').length,
+          totalKeywords: correctAnswer.text.split(' ').length,
+          semanticSimilarity: 1.0,
+          misconception: { detected: false },
+          offTopic: { detected: false },
+          analysis: 'Exact match - full credit'
+        };
+      }
+    }
 
     let bestResult = {
       score: 0,
@@ -241,15 +236,11 @@ class ShortAnswerGradingService {
       analysis: ''
     };
 
-    // Evaluate against each acceptable answer
     for (const correctAnswer of acceptableAnswers) {
       const normalizedCorrect = this.normalizeText(correctAnswer.text);
-
-      // Extract keywords with weights
       const correctKeywords = this.extractKeywords(normalizedCorrect, correctAnswer.weights || {});
       const studentKeywords = this.extractKeywords(normalizedStudent);
 
-      // Calculate keyword-based score
       const keywordResult = this.calculateKeywordScore(
         studentKeywords,
         correctKeywords,
@@ -261,26 +252,22 @@ class ShortAnswerGradingService {
         }
       );
 
-      // Calculate semantic similarity if enabled
       let semanticSimilarity = 0;
       if (useSemanticSimilarity) {
-        semanticSimilarity = this.calculateSemanticSimilarity(studentAnswer, correctAnswer.text);
+        semanticSimilarity = await this.calculateSemanticSimilarity(studentAnswer, correctAnswer.text);
       }
 
-      // Combine scores
       const combinedScore = usePartialCredit ?
         (keywordResult.score * keywordWeight) + (semanticSimilarity * semanticWeight) :
         (keywordResult.score >= 1.0 ? 1.0 : 0.0);
 
-      // Detect misconceptions and off-topic
       const misconceptionCheck = this.detectMisconceptions(studentAnswer, correctAnswer.text);
       const offTopicCheck = this.detectOffTopic(studentAnswer, correctAnswer.text);
 
-      // Keep the best result
       if (combinedScore > bestResult.score) {
         bestResult = {
           score: combinedScore,
-          confidence: Math.min(combinedScore + 0.1, 1.0), // Add small confidence boost
+          confidence: Math.min(combinedScore + 0.1, 1.0),
           matchedKeywords: keywordResult.matched,
           totalKeywords: keywordResult.total,
           semanticSimilarity,
@@ -292,7 +279,7 @@ class ShortAnswerGradingService {
     }
 
     return {
-      isCorrect: bestResult.score >= 0.7, // Consider correct if 70% or higher
+      isCorrect: bestResult.score >= 0.7,
       score: bestResult.score,
       confidence: bestResult.confidence,
       matchedKeywords: bestResult.matchedKeywords,
@@ -304,13 +291,9 @@ class ShortAnswerGradingService {
     };
   }
 
-  /**
-   * Get all acceptable answers from question config
-   */
   getAcceptableAnswers(questionConfig) {
     const answers = [];
 
-    // Primary correct answer
     if (questionConfig.correctAnswer) {
       answers.push({
         text: questionConfig.correctAnswer,
@@ -318,7 +301,6 @@ class ShortAnswerGradingService {
       });
     }
 
-    // Alternative correct answers
     if (questionConfig.alternativeAnswers && Array.isArray(questionConfig.alternativeAnswers)) {
       answers.push(...questionConfig.alternativeAnswers.map(alt => ({
         text: alt.text || alt,
@@ -329,33 +311,23 @@ class ShortAnswerGradingService {
     return answers.length > 0 ? answers : [{ text: '', weights: {} }];
   }
 
-  /**
-   * Enhanced text normalization
-   */
   normalizeText(text) {
     if (!text) return '';
 
     return text
       .toLowerCase()
-      // Remove extra whitespace
       .replace(/\s+/g, ' ')
-      // Remove punctuation except hyphens and apostrophes
       .replace(/[^\w\s\-']/g, ' ')
-      // Handle contractions
       .replace(/'s\b/g, ' is')
       .replace(/'re\b/g, ' are')
       .replace(/'ve\b/g, ' have')
       .replace(/'t\b/g, ' not')
       .replace(/'ll\b/g, ' will')
       .replace(/'d\b/g, ' would')
-      // Remove extra whitespace again
       .replace(/\s+/g, ' ')
       .trim();
   }
 
-  /**
-   * Extract keywords from text with optional weights
-   */
   extractKeywords(text, weights = {}, useStemming = true) {
     if (!text) return [];
 
@@ -363,7 +335,6 @@ class ShortAnswerGradingService {
     const keywords = [];
 
     for (const token of tokens) {
-      // Skip stopwords unless they're weighted
       if (stopwords.includes(token.toLowerCase()) && !weights[token]) {
         continue;
       }
@@ -378,9 +349,6 @@ class ShortAnswerGradingService {
     return keywords;
   }
 
-  /**
-   * Calculate keyword-based score with advanced matching
-   */
   calculateKeywordScore(studentKeywords, correctKeywords, options) {
     const { useSynonyms, useStemming, useFuzzyMatching, fuzzyThreshold } = options;
 
@@ -398,30 +366,23 @@ class ShortAnswerGradingService {
       for (const studentKw of studentKeywords) {
         let similarity = 0;
 
-        // Exact match
         if (studentKw.word === correctKw.word) {
           similarity = 1.0;
-        }
-        // Stem match
-        else if (useStemming && studentKw.stem === correctKw.stem) {
+        } else if (useStemming && studentKw.stem === correctKw.stem) {
           similarity = 0.9;
-        }
-        // Synonym match
-        else if (useSynonyms && this.isSynonym(studentKw.word, correctKw.word)) {
+        } else if (useSynonyms && this.isSynonym(studentKw.word, correctKw.word)) {
           similarity = 0.8;
-        }
-        // Fuzzy match for typos
-        else if (useFuzzyMatching) {
+        } else if (useFuzzyMatching) {
           const fuzzySim = this.fuzzyMatch(studentKw.word, correctKw.word);
           if (fuzzySim >= fuzzyThreshold) {
-            similarity = fuzzySim * 0.7; // Reduce weight for fuzzy matches
+            similarity = fuzzySim * 0.7;
           }
         }
 
         if (similarity > 0) {
           found = true;
           bestMatchWeight = Math.max(bestMatchWeight, similarity * correctKw.weight);
-          break; // Take the best match for this keyword
+          break;
         }
       }
 
@@ -440,9 +401,6 @@ class ShortAnswerGradingService {
     };
   }
 
-  /**
-   * Check if two words are synonyms
-   */
   isSynonym(word1, word2) {
     const synonyms1 = SYNONYM_DICT[word1] || [];
     const synonyms2 = SYNONYM_DICT[word2] || [];
@@ -450,9 +408,6 @@ class ShortAnswerGradingService {
     return synonyms1.includes(word2) || synonyms2.includes(word1);
   }
 
-  /**
-   * Fuzzy string matching using Levenshtein distance
-   */
   fuzzyMatch(str1, str2) {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
@@ -463,45 +418,33 @@ class ShortAnswerGradingService {
     return (longer.length - distance) / longer.length;
   }
 
-  /**
-   * Calculate semantic similarity using compromise NLP
-   */
-  calculateSemanticSimilarity(text1, text2) {
+  async calculateSemanticSimilarity(text1, text2) {
     try {
-      const doc1 = this.nlp(text1);
-      const doc2 = this.nlp(text2);
+      if (!this.bertModel) {
+        console.warn('BERT model not loaded, falling back to basic semantic similarity');
+        return 0;
+      }
 
-      // Extract meaningful words (nouns, verbs, adjectives, adverbs)
-      const words1 = [
-        ...doc1.nouns().out('array'),
-        ...doc1.verbs().out('array'),
-        ...doc1.adjectives().out('array'),
-        ...doc1.adverbs().out('array')
-      ].map(w => w.toLowerCase());
+      const embedding1 = await this.bertModel(text1);
+      const embedding2 = await this.bertModel(text2);
 
-      const words2 = [
-        ...doc2.nouns().out('array'),
-        ...doc2.verbs().out('array'),
-        ...doc2.adjectives().out('array'),
-        ...doc2.adverbs().out('array')
-      ].map(w => w.toLowerCase());
+      const vector1 = embedding1[0].flat();
+      const vector2 = embedding2[0].flat();
 
-      // Jaccard similarity
-      const set1 = new Set(words1);
-      const set2 = new Set(words2);
-      const intersection = new Set([...set1].filter(x => set2.has(x)));
-      const union = new Set([...set1, ...set2]);
+      const dotProduct = vector1.reduce((sum, val, i) => sum + val * vector2[i], 0);
+      const magnitude1 = Math.sqrt(vector1.reduce((sum, val) => sum + val * val, 0));
+      const magnitude2 = Math.sqrt(vector2.reduce((sum, val) => sum + val * val, 0));
 
-      return intersection.size / union.size;
+      if (magnitude1 === 0 || magnitude2 === 0) return 0;
+
+      const similarity = dotProduct / (magnitude1 * magnitude2);
+      return similarity;
     } catch (error) {
       console.error('Semantic similarity calculation failed:', error);
       return 0;
     }
   }
 
-  /**
-   * Detect common misconceptions in student answers
-   */
   detectMisconceptions(studentAnswer, correctAnswer) {
     const misconceptions = [
       { pattern: /mitochondria.*stor.*food/i, misconception: 'Mitochondria store food' },
@@ -520,11 +463,7 @@ class ShortAnswerGradingService {
     return { detected: false };
   }
 
-  /**
-   * Detect off-topic or irrelevant answers
-   */
   detectOffTopic(studentAnswer, correctAnswer) {
-    // Simple heuristic: if semantic similarity is very low (< 0.2) and few keywords match
     const semanticSim = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
     const studentWords = this.extractKeywords(this.normalizeText(studentAnswer));
     const correctWords = this.extractKeywords(this.normalizeText(correctAnswer));
@@ -538,9 +477,6 @@ class ShortAnswerGradingService {
     return { detected: offTopic, similarity: semanticSim, commonWords };
   }
 
-  /**
-   * Generate detailed analysis text
-   */
   generateAnalysis(keywordResult, semanticSimilarity, usePartialCredit, misconceptionCheck, offTopicCheck) {
     const keywordPercent = keywordResult.total > 0 ?
       Math.round((keywordResult.matched / keywordResult.total) * 100) : 0;

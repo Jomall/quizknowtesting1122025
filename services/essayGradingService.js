@@ -1,6 +1,8 @@
 const natural = require('natural');
 const compromise = require('compromise');
 const SentenceTokenizer = require('sentence-tokenizer');
+const { pipeline } = require('@xenova/transformers'); // Added missing import
+
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();

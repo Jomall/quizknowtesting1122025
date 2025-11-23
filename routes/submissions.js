@@ -1,7 +1,9 @@
+
 const express = require('express');
 const QuizSubmission = require('../models/QuizSubmission');
 const Quiz = require('../models/Quiz');
 const { auth, checkApproved } = require('../middleware/auth');
+const shortAnswerGradingService = require('../services/shortAnswerGradingService');
 
 const router = express.Router();
 
@@ -42,12 +44,53 @@ router.post('/', auth, checkApproved, async (req, res) => {
     const totalQuestions = quiz.questions.length;
     const maxScore = quiz.questions.reduce((total, q) => total + (q.points || 1), 0);
 
-    const submissionAnswers = answers.map(answer => {
+    const submissionAnswers = await Promise.all(answers.map(async (answer) => {
       const question = quiz.questions.find(q => q._id.toString() === answer.questionId);
-      const isCorrect = question && question.correctAnswer === answer.answer;
-      const pointsEarned = isCorrect ? (question?.points || 1) : 0;
+      if (!question) {
+        return {
+          questionId: answer.questionId,
+          answer: answer.answer,
+          isCorrect: false,
+          pointsEarned: 0
+        };
+      }
 
-      if (isCorrect) score += pointsEarned;
+      let isCorrect = false;
+      let pointsEarned = 0;
+
+if (question.type === 'fill-in-the-blank') {
+  if (Array.isArray(answer.answer)) {
+    let totalScore = 0;
+    const blanks = question.blanks || [];
+    for (let i = 0; i < blanks.length; i++) {
+      const blankAnswer = (answer.answer[i] || '').toString();
+      const blankPoints = blanks[i]?.points || 1;
+      const blankQuestionConfig = {
+        correctAnswer: blanks[i]?.correctAnswer || '',
+        alternativeAnswers: blanks[i]?.alternativeAnswers || [],
+        keywordWeights: blanks[i]?.keywordWeights || {},
+      };
+      const gradingResult = await shortAnswerGradingService.gradeShortAnswer(blankAnswer, blankQuestionConfig);
+      if (gradingResult.isCorrect) {
+        totalScore += blankPoints;
+      }
+    }
+    pointsEarned = totalScore;
+    // Consider partial credit correct if any blank correct
+    isCorrect = totalScore > 0;
+  } else {
+    const gradingResult = await shortAnswerGradingService.gradeShortAnswer(answer.answer, question);
+    isCorrect = gradingResult.isCorrect;
+    pointsEarned = isCorrect ? (question.points || 1) : 0;
+  }
+} else {
+  isCorrect = question.correctAnswer === answer.answer;
+  pointsEarned = isCorrect ? (question.points || 1) : 0;
+}
+
+      if (isCorrect) {
+        score += pointsEarned;
+      }
 
       return {
         questionId: answer.questionId,
@@ -55,7 +98,7 @@ router.post('/', auth, checkApproved, async (req, res) => {
         isCorrect,
         pointsEarned
       };
-    });
+    }));
 
     const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
@@ -125,6 +168,7 @@ router.post('/', auth, checkApproved, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Get my submissions (student only)
 router.get('/my-submissions', auth, async (req, res) => {

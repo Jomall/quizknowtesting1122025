@@ -195,7 +195,8 @@ case 'fill-in-the-blank':
             id: `blank-${blanks.length + i + 1}`,
             correctAnswer: '',
             size: 'medium',
-            hint: ''
+            hint: '',
+            points: 1
           }))
         ));
 
@@ -214,27 +215,47 @@ case 'fill-in-the-blank':
                   <React.Fragment key={index}>
                     {segment}
                     {index < finalSegments.length - 1 && (
-                      <TextField
-                        size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
-                        label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
-                        value={answerValue}
-                        onChange={(e) => {
-                          e.persist();
-                          const currentAnswers = currentAnswer && Array.isArray(currentAnswer)
-                            ? [...currentAnswer]
-                            : [];
-                          currentAnswers[index] = e.target.value;
-                          handleAnswerChange(currentAnswers);
-                        }}
-                        sx={{
-                          mx: 1,
-                          minWidth: effectiveBlanks[index]?.size === 'large' ? 200 :
-                                   effectiveBlanks[index]?.size === 'small' ? 100 : 150,
-                          verticalAlign: 'baseline'
-                        }}
-                        variant="outlined"
-                        placeholder="Enter answer"
-                      />
+                      <>
+                        <TextField
+                          size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
+                          label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
+                          value={answerValue}
+                          onChange={(e) => {
+                            e.persist();
+                            const currentAnswers = currentAnswer && Array.isArray(currentAnswer)
+                              ? [...currentAnswer]
+                              : [];
+                            currentAnswers[index] = e.target.value;
+                            handleAnswerChange(currentAnswers);
+                          }}
+                          sx={{
+                            mx: 1,
+                            minWidth: effectiveBlanks[index]?.size === 'large' ? 200 :
+                                     effectiveBlanks[index]?.size === 'small' ? 100 : 150,
+                            verticalAlign: 'baseline'
+                          }}
+                          variant="outlined"
+                          placeholder="Enter answer"
+                        />
+                        <TextField
+                          type="number"
+                          size="small"
+                          label="Points"
+                          value={effectiveBlanks[index]?.points || 1}
+                          onChange={(e) => {
+                            e.preventDefault();
+                            // TODO: Implement handler to update points per blank in state
+                            console.log(`Set points for blank ${index}:`, e.target.value);
+                          }}
+                          inputProps={{ min: 0, step: 0.1 }}
+                          sx={{
+                            width: 100,
+                            mx: 1,
+                            verticalAlign: 'baseline',
+                          }}
+                          variant="outlined"
+                        />
+                      </>
                     )}
                   </React.Fragment>
                 );

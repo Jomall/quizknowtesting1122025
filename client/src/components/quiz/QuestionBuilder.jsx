@@ -507,7 +507,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="Correct Answer"
@@ -521,21 +521,19 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Size</InputLabel>
-                        <Select
-                          value={blank.size || 'medium'}
-                          onChange={(e) => {
-                            const newBlanks = [...effectiveBlanks];
-                            newBlanks[index] = { ...blank, size: e.target.value };
-                            handleQuestionChange('blanks', newBlanks);
-                          }}
-                        >
-                          <MenuItem value="small">Small</MenuItem>
-                          <MenuItem value="medium">Medium</MenuItem>
-                          <MenuItem value="large">Large</MenuItem>
-                        </Select>
-                      </FormControl>
+                      <TextField
+                        fullWidth
+                        label="Points"
+                        type="number"
+                        value={blank.points ?? 1}
+                        onChange={(e) => {
+                          const newBlanks = [...effectiveBlanks];
+                          newBlanks[index] = { ...blank, points: Number(e.target.value) };
+                          handleQuestionChange('blanks', newBlanks);
+                        }}
+                        inputProps={{ min: 0, step: 0.1 }}
+                        helperText="Points assigned to this blank"
+                      />
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
