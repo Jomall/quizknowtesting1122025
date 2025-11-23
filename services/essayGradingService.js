@@ -9,46 +9,46 @@ const stopwords = natural.stopwords;
 
 // Enhanced synonym dictionary for short answer grading
 const SYNONYM_DICT = {
-  'car': ['automobile', 'vehicle', 'auto'],
-  'big': ['large', 'huge', 'enormous'],
-  'small': ['little', 'tiny', 'miniature'],
-  'fast': ['quick', 'rapid', 'speedy'],
-  'slow': ['sluggish', 'lethargic', 'gradual'],
-  'good': ['excellent', 'great', 'fine'],
-  'bad': ['poor', 'terrible', 'awful'],
-  'important': ['crucial', 'vital', 'essential'],
+  car: ['automobile', 'vehicle', 'auto'],
+  big: ['large', 'huge', 'enormous'],
+  small: ['little', 'tiny', 'miniature'],
+  fast: ['quick', 'rapid', 'speedy'],
+  slow: ['sluggish', 'lethargic', 'gradual'],
+  good: ['excellent', 'great', 'fine'],
+  bad: ['poor', 'terrible', 'awful'],
+  important: ['crucial', 'vital', 'essential'],
   'world war ii': ['second world war', 'wwii', 'ww2'],
-  'photosynthesis': ['photosynthetic process', 'plant food making'],
-  'chlorophyll': ['green pigment', 'chloroplast pigment'],
-  'sunlight': ['solar energy', 'sun energy', 'light'],
-  'plants': ['vegetation', 'flora', 'green plants'],
-  'run': ['running', 'ran', 'runs'],
-  'walk': ['walking', 'walked', 'walks'],
-  'write': ['writing', 'wrote', 'writes'],
-  'read': ['reading', 'read', 'reads'],
-  'convert': ['change', 'transform', 'turn', 'make', 'produce'],
-  'light': ['sunlight', 'solar', 'sun', 'bright'],
-  'energy': ['power', 'force'],
-  'chemical': ['chemical'],
-  'food': ['nutrition', 'nourishment'],
-  'use': ['utilize', 'employ'],
-  'make': ['produce', 'create', 'generate'],
-  'through': ['via', 'by', 'through'],
-  'called': ['named', 'known as', 'referred to as'],
-  'process': ['method', 'procedure', 'way'],
-  'is': ['is', 'represents', 'means'],
+  photosynthesis: ['photosynthetic process', 'plant food making'],
+  chlorophyll: ['green pigment', 'chloroplast pigment'],
+  sunlight: ['solar energy', 'sun energy', 'light'],
+  plants: ['vegetation', 'flora', 'green plants'],
+  run: ['running', 'ran', 'runs'],
+  walk: ['walking', 'walked', 'walks'],
+  write: ['writing', 'wrote', 'writes'],
+  read: ['reading', 'read', 'reads'],
+  convert: ['change', 'transform', 'turn', 'make', 'produce'],
+  light: ['sunlight', 'solar', 'sun', 'bright'],
+  energy: ['power', 'force'],
+  chemical: ['chemical'],
+  food: ['nutrition', 'nourishment'],
+  use: ['utilize', 'employ'],
+  make: ['produce', 'create', 'generate'],
+  through: ['via', 'by', 'through'],
+  called: ['named', 'known as', 'referred to as'],
+  process: ['method', 'procedure', 'way'],
+  is: ['is', 'represents', 'means'],
   // Short answer specific terms
-  'mitochondria': ['mitochondrion', 'powerhouse', 'cell powerhouse'],
-  'atp': ['adenosine triphosphate', 'energy currency'],
+  mitochondria: ['mitochondrion', 'powerhouse', 'cell powerhouse'],
+  atp: ['adenosine triphosphate', 'energy currency'],
   'cellular respiration': ['respiration', 'cell respiration'],
-  'glucose': ['sugar', 'blood sugar'],
-  'nutrients': ['nutrient', 'food molecules'],
-  'movement': ['motion', 'locomotion'],
-  'growth': ['growing', 'development'],
-  'explain': ['describe', 'elaborate', 'clarify'],
-  'compare': ['contrast', 'differentiate'],
-  'analyze': ['examine', 'break down'],
-  'evaluate': ['assess', 'judge']
+  glucose: ['sugar', 'blood sugar'],
+  nutrients: ['nutrient', 'food molecules'],
+  movement: ['motion', 'locomotion'],
+  growth: ['growing', 'development'],
+  explain: ['describe', 'elaborate', 'clarify'],
+  compare: ['contrast', 'differentiate'],
+  analyze: ['examine', 'break down'],
+  evaluate: ['assess', 'judge']
 };
 
 class EssayGradingService {
@@ -67,23 +67,22 @@ class EssayGradingService {
    */
   async initializeBERT() {
     try {
-      // Dynamically import pipeline from @xenova/transformers ESM module
       const { pipeline } = await import('@xenova/transformers');
-      // Load pre-trained BERT model for semantic similarity
       this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       console.log('BERT model loaded successfully');
     } catch (error) {
       console.error('Failed to load BERT model:', error);
-      // Fallback to basic similarity if BERT fails
+      // Fall back to basic similarity if BERT is unavailable
+      this.bertModel = null;
     }
   }
 
   /**
-   * Enhanced essay grading with improved text processing
-   * @param {string} studentAnswer - The student's essay response
-   * @param {string} correctAnswer - The instructor's rubric/answer key
-   * @param {object} options - Grading options
-   * @returns {object} Grading result with score and analysis
+   * Grade essay based on keyword matching with optional stemming, stopwords removal, and synonym expansion
+   * @param {string} studentAnswer
+   * @param {string} correctAnswer
+   * @param {Object} options
+   * @returns {Object} grading result containing score, matches, and analysis
    */
   gradeEssay(studentAnswer, correctAnswer, options = {}) {
     const {
@@ -105,21 +104,21 @@ class EssayGradingService {
       };
     }
 
-    // Preprocess texts
+    // Preprocess student and rubric texts
     const processedStudent = this.preprocessText(studentAnswer, { useStemming, useStopwords });
     const processedCorrect = this.preprocessText(correctAnswer, { useStemming, useStopwords });
 
-    // Extract keywords from rubric
+    // Extract keywords from rubric, including synonyms if enabled
     const rubricKeywords = this.extractKeywords(processedCorrect, { useSynonyms });
 
-    // Find matches in student answer
+    // Determine matches between student answer and rubric keywords
     const matches = this.findKeywordMatches(processedStudent, rubricKeywords, { useSynonyms });
 
-    // Calculate score
-    const matchRatio = matches.found / matches.total;
+    // Calculate matching ratio and determine correctness
+    const matchRatio = matches.found / matches.total || 0;
     const isCorrect = partialCredit ? matchRatio >= minMatchThreshold : matchRatio === 1.0;
 
-    // Calculate partial score (0-1 scale)
+    // Calculate final score (scaled 0 to 1)
     let score = 0;
     if (partialCredit) {
       score = Math.min(matchRatio, 1.0);
@@ -136,34 +135,31 @@ class EssayGradingService {
       analysis: this.generateAnalysis(matches, rubricKeywords),
       details: {
         studentKeywords: processedStudent.keywords,
-        rubricKeywords: rubricKeywords,
+        rubricKeywords,
         matches: matches.details
       }
     };
   }
 
   /**
-   * Preprocess text for better matching
+   * Preprocesses text by normalizing, tokenizing, removing stopwords, and optionally stemming
+   * @param {string} text
+   * @param {Object} options
+   * @returns {Object} processed text data
    */
   preprocessText(text, options = {}) {
     const { useStemming = true, useStopwords = true } = options;
 
-    // Convert to lowercase and normalize
     let processed = text.toLowerCase();
-
-    // Remove punctuation and extra whitespace
     processed = processed.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // Tokenize
     const tokens = tokenizer.tokenize(processed) || [];
 
-    // Remove stopwords if enabled
     let filteredTokens = tokens;
     if (useStopwords) {
       filteredTokens = tokens.filter(token => !stopwords.includes(token));
     }
 
-    // Apply stemming if enabled
     let finalTokens = filteredTokens;
     if (useStemming) {
       finalTokens = filteredTokens.map(token => stemmer.stem(token));
@@ -171,15 +167,18 @@ class EssayGradingService {
 
     return {
       original: text,
-      processed: processed,
-      tokens: tokens,
+      processed,
+      tokens,
       keywords: finalTokens,
       stemmed: useStemming
     };
   }
 
   /**
-   * Extract keywords from rubric with synonym expansion
+   * Extract keywords and expand with synonyms if enabled
+   * @param {Object} processedText
+   * @param {Object} options
+   * @returns {Array} array of keywords including synonyms
    */
   extractKeywords(processedText, options = {}) {
     const { useSynonyms = true } = options;
@@ -189,7 +188,6 @@ class EssayGradingService {
 
     if (useSynonyms) {
       keywords.forEach(keyword => {
-        // Check for exact matches in synonym dictionary
         Object.entries(SYNONYM_DICT).forEach(([key, synonyms]) => {
           if (key === keyword || synonyms.includes(keyword)) {
             [key, ...synonyms].forEach(syn => expandedKeywords.add(syn));
@@ -202,7 +200,11 @@ class EssayGradingService {
   }
 
   /**
-   * Find keyword matches with detailed analysis
+   * Finds matched keywords between student keywords and rubric keywords with match type info
+   * @param {Object} processedStudent
+   * @param {Array} rubricKeywords
+   * @param {Object} options
+   * @returns {Object} matched count, detailed matches array
    */
   findKeywordMatches(processedStudent, rubricKeywords, options = {}) {
     const { useSynonyms = true } = options;
@@ -210,32 +212,32 @@ class EssayGradingService {
     const matched = [];
     const details = [];
 
+    // For each rubric keyword, check various matching scenarios
     rubricKeywords.forEach(rubricWord => {
       let found = false;
       let matchType = 'none';
       let matchedWord = null;
 
-      // Direct match
+      // Direct keyword match
       if (processedStudent.keywords.includes(rubricWord)) {
         found = true;
         matchType = 'direct';
         matchedWord = rubricWord;
       }
-      // Stemmed match (if stemming was used)
-      else if (processedStudent.stemmed && processedStudent.tokens.some(token =>
-        stemmer.stem(token) === rubricWord
-      )) {
+      // Stemmed match, if stemming enabled
+      else if (
+        processedStudent.stemmed &&
+        processedStudent.tokens.some(token => stemmer.stem(token) === rubricWord)
+      ) {
         found = true;
         matchType = 'stemmed';
         matchedWord = rubricWord;
       }
-      // Synonym match
+      // Synonym match if enabled
       else if (useSynonyms) {
         const synonymGroup = this.findSynonymGroup(rubricWord);
         if (synonymGroup) {
-          const synonymMatch = processedStudent.keywords.find(word =>
-            synonymGroup.includes(word)
-          );
+          const synonymMatch = processedStudent.keywords.find(word => synonymGroup.includes(word));
           if (synonymMatch) {
             found = true;
             matchType = 'synonym';
@@ -244,9 +246,7 @@ class EssayGradingService {
         }
       }
 
-      if (found) {
-        matched.push(rubricWord);
-      }
+      if (found) matched.push(rubricWord);
 
       details.push({
         rubricWord,
@@ -265,7 +265,9 @@ class EssayGradingService {
   }
 
   /**
-   * Find synonym group for a word
+   * Locate synonym group for a given word
+   * @param {string} word
+   * @returns {Array|null} synonym group or null if none found
    */
   findSynonymGroup(word) {
     for (const [key, synonyms] of Object.entries(SYNONYM_DICT)) {
@@ -277,10 +279,13 @@ class EssayGradingService {
   }
 
   /**
-   * Generate analysis text for grading result
+   * Generate human-readable text analysis from matches
+   * @param {Object} matches
+   * @param {Array} rubricKeywords
+   * @returns {string} analysis summary
    */
   generateAnalysis(matches, rubricKeywords) {
-    const percentage = Math.round((matches.found / matches.total) * 100);
+    const percentage = Math.round(((matches.found || 0) / (matches.total || 1)) * 100);
 
     if (matches.found === matches.total) {
       return `Perfect match: All ${matches.total} required keywords found (${percentage}%)`;
@@ -293,25 +298,26 @@ class EssayGradingService {
   }
 
   /**
-   * Advanced semantic similarity using compromise NLP
+   * Semantic similarity calculation using compromise library for POS extraction and Jaccard similarity
+   * @param {string} text1
+   * @param {string} text2
+   * @returns {number} similarity score between 0 and 1
    */
   calculateSemanticSimilarity(text1, text2) {
     try {
       const doc1 = this.nlp(text1);
       const doc2 = this.nlp(text2);
 
-      // Extract nouns, verbs, adjectives
       const words1 = doc1.nouns().out('array').concat(doc1.verbs().out('array'), doc1.adjectives().out('array'));
       const words2 = doc2.nouns().out('array').concat(doc2.verbs().out('array'), doc2.adjectives().out('array'));
 
-      // Simple Jaccard similarity
       const set1 = new Set(words1.map(w => w.toLowerCase()));
       const set2 = new Set(words2.map(w => w.toLowerCase()));
 
       const intersection = new Set([...set1].filter(x => set2.has(x)));
       const union = new Set([...set1, ...set2]);
 
-      return intersection.size / union.size;
+      return union.size === 0 ? 0 : intersection.size / union.size;
     } catch (error) {
       console.error('Semantic similarity calculation failed:', error);
       return 0;
@@ -319,31 +325,28 @@ class EssayGradingService {
   }
 
   /**
-   * Enhanced grading with semantic analysis
+   * Grade essay with both keyword matching and semantic similarity combined (weighted score)
    */
   gradeEssayAdvanced(studentAnswer, correctAnswer, options = {}) {
-    // First do keyword-based grading
     const keywordResult = this.gradeEssay(studentAnswer, correctAnswer, options);
 
-    // Add semantic similarity
     const semanticSimilarity = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
 
-    // Combine scores (weighted average)
     const keywordWeight = 0.7;
     const semanticWeight = 0.3;
-    const combinedScore = (keywordResult.score * keywordWeight) + (semanticSimilarity * semanticWeight);
+    const combinedScore = keywordResult.score * keywordWeight + semanticSimilarity * semanticWeight;
 
     return {
       ...keywordResult,
       score: combinedScore,
       semanticSimilarity,
       combinedScore,
-      analysis: \`\${keywordResult.analysis} | Semantic similarity: \${Math.round(semanticSimilarity * 100)}%\`
+      analysis: `${keywordResult.analysis} | Semantic similarity: ${Math.round(semanticSimilarity * 100)}%`
     };
   }
 
   /**
-   * Advanced BERT-based semantic similarity
+   * Calculate semantic similarity using BERT model embeddings (async)
    */
   async calculateBERTSimilarity(text1, text2) {
     if (!this.bertModel) {
@@ -352,13 +355,10 @@ class EssayGradingService {
     }
 
     try {
-      // Get embeddings for both texts
       const embedding1 = await this.bertModel(text1, { pooling: 'mean', normalize: true });
       const embedding2 = await this.bertModel(text2, { pooling: 'mean', normalize: true });
 
-      // Calculate cosine similarity
-      const similarity = this.cosineSimilarity(embedding1.data, embedding2.data);
-      return similarity;
+      return this.cosineSimilarity(embedding1.data, embedding2.data);
     } catch (error) {
       console.error('BERT similarity calculation failed:', error);
       return this.calculateSemanticSimilarity(text1, text2);
@@ -388,7 +388,9 @@ class EssayGradingService {
   }
 
   /**
-   * Sentence-level analysis for coherence and logical flow
+   * Analyze sentence coherence and logical flow
+   * @param {string} text
+   * @returns {Object} analysis info
    */
   analyzeSentenceStructure(text) {
     const sentences = this.sentenceTokenizer.sentences(text);
@@ -403,23 +405,23 @@ class EssayGradingService {
 
     if (sentences.length === 0) return analysis;
 
-    // Calculate average sentence length
-    const totalWords = sentences.reduce((sum, sentence) => sum + sentence.split(' ').length, 0);
+    const totalWords = sentences.reduce((sum, sentence) => sum + sentence.trim().split(/\s+/).length, 0);
     analysis.avgSentenceLength = totalWords / sentences.length;
 
-    // Analyze transitions and coherence
-    const transitionWords = ['however', 'therefore', 'thus', 'consequently', 'furthermore', 'moreover', 'in addition', 'similarly', 'likewise', 'on the other hand', 'in contrast', 'although', 'despite', 'while', 'whereas'];
+    const transitionWords = [
+      'however', 'therefore', 'thus', 'consequently', 'furthermore',
+      'moreover', 'in addition', 'similarly', 'likewise', 'on the other hand',
+      'in contrast', 'although', 'despite', 'while', 'whereas'
+    ];
 
     sentences.forEach((sentence, index) => {
       const lowerSentence = sentence.toLowerCase();
 
-      // Check for transition words
       const hasTransition = transitionWords.some(word => lowerSentence.includes(word));
       if (hasTransition) {
         analysis.transitions.push({ sentence: index + 1, transition: true });
       }
 
-      // Basic coherence check - look for repeated concepts
       if (index > 0) {
         const prevSentence = sentences[index - 1].toLowerCase();
         const commonWords = this.findCommonWords(prevSentence, lowerSentence);
@@ -431,7 +433,6 @@ class EssayGradingService {
       }
     });
 
-    // Calculate overall coherence score
     const goodTransitions = analysis.logicalFlow.filter(flow => flow.coherence === 'good').length;
     analysis.coherenceScore = analysis.logicalFlow.length > 0 ? goodTransitions / analysis.logicalFlow.length : 0;
 
@@ -442,8 +443,8 @@ class EssayGradingService {
    * Find common meaningful words between two sentences
    */
   findCommonWords(sentence1, sentence2) {
-    const words1 = sentence1.split(' ').filter(word => word.length > 3 && !stopwords.includes(word));
-    const words2 = sentence2.split(' ').filter(word => word.length > 3 && !stopwords.includes(word));
+    const words1 = sentence1.split(/\s+/).filter(word => word.length > 3 && !stopwords.includes(word));
+    const words2 = sentence2.split(/\s+/).filter(word => word.length > 3 && !stopwords.includes(word));
 
     const stemmed1 = words1.map(word => stemmer.stem(word));
     const stemmed2 = words2.map(word => stemmer.stem(word));
@@ -452,7 +453,7 @@ class EssayGradingService {
   }
 
   /**
-   * Named Entity Recognition for key concepts
+   * Extract named entities from text for organizations, people, places, dates, numbers and technical terms
    */
   extractNamedEntities(text) {
     const doc = this.nlp(text);
@@ -466,12 +467,11 @@ class EssayGradingService {
       technicalTerms: []
     };
 
-    // Extract potential technical terms (capitalized words, scientific terms)
     const sentences = this.sentenceTokenizer.sentences(text);
+
     sentences.forEach(sentence => {
-      const words = sentence.split(' ');
+      const words = sentence.split(/\s+/);
       words.forEach(word => {
-        // Check for technical/scientific terms
         if (word.length > 4 && /^[A-Z][a-z]+$/.test(word)) {
           entities.technicalTerms.push(word);
         }
@@ -482,7 +482,7 @@ class EssayGradingService {
   }
 
   /**
-   * Comprehensive essay grading with all advanced features
+   * Comprehensive essay grading combining keywords, semantics, structure, and entities with weighting
    */
   async gradeEssayComprehensive(studentAnswer, correctAnswer, rubric = {}, options = {}) {
     const {
@@ -497,10 +497,8 @@ class EssayGradingService {
       }
     } = options;
 
-    // Basic keyword grading
     const keywordResult = this.gradeEssay(studentAnswer, correctAnswer, options);
 
-    // BERT-based semantic similarity
     let semanticSimilarity = 0;
     if (useBERT) {
       semanticSimilarity = await this.calculateBERTSimilarity(studentAnswer, correctAnswer);
@@ -508,23 +506,13 @@ class EssayGradingService {
       semanticSimilarity = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
     }
 
-    // Sentence structure analysis
-    let sentenceAnalysis = {};
-    if (analyzeSentences) {
-      sentenceAnalysis = this.analyzeSentenceStructure(studentAnswer);
-    }
+    const sentenceAnalysis = analyzeSentences ? this.analyzeSentenceStructure(studentAnswer) : {};
+    const entities = extractEntities ? this.extractNamedEntities(studentAnswer) : {};
 
-    // Named entity extraction
-    let entities = {};
-    if (extractEntities) {
-      entities = this.extractNamedEntities(studentAnswer);
-    }
-
-    // Calculate weighted score
     const keywordScore = keywordResult.score * weights.keywords;
     const semanticScore = semanticSimilarity * weights.semantics;
     const structureScore = sentenceAnalysis.coherenceScore * weights.structure;
-    const entityScore = (entities.technicalTerms.length > 0 ? 0.5 : 0) * weights.entities;
+    const entityScore = (entities.technicalTerms && entities.technicalTerms.length > 0 ? 0.5 : 0) * weights.entities;
 
     const totalScore = keywordScore + semanticScore + structureScore + entityScore;
 
@@ -545,18 +533,18 @@ class EssayGradingService {
   }
 
   /**
-   * Generate comprehensive analysis text
+   * Generate comprehensive grading analysis summary
    */
   generateComprehensiveAnalysis(keywordResult, semanticSimilarity, sentenceAnalysis, entities) {
     let analysis = keywordResult.analysis;
 
     analysis += ` | Semantic similarity: ${Math.round(semanticSimilarity * 100)}%`;
 
-    if (sentenceAnalysis.totalSentences > 0) {
+    if (sentenceAnalysis && sentenceAnalysis.totalSentences > 0) {
       analysis += ` | Sentences: ${sentenceAnalysis.totalSentences}, Coherence: ${Math.round(sentenceAnalysis.coherenceScore * 100)}%`;
     }
 
-    if (entities.technicalTerms && entities.technicalTerms.length > 0) {
+    if (entities && entities.technicalTerms && entities.technicalTerms.length > 0) {
       analysis += ` | Technical terms: ${entities.technicalTerms.length}`;
     }
 
