@@ -29,6 +29,8 @@ const QuizTaker = ({ quizId }) => {
     submitQuiz,
   } = useQuiz();
 
+  console.log('QuizTaker current answers:', answers);
+
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 

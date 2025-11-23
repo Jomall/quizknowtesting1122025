@@ -106,20 +106,20 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const updateAnswer = async (questionId, answer) => {
+  const updateAnswer = (questionId, answer) => {
+    // Update local state immediately
     dispatch({ type: ACTIONS.UPDATE_ANSWER, payload: { questionId, answer } });
 
-    if (state.session) {
-      try {
-        await quizAPI.updateAnswer(
-          state.currentQuiz._id,
-          state.session._id,
-          questionId,
-          answer
-        );
-      } catch (error) {
+    // Asynchronously update server
+    if (state.session && state.currentQuiz) {
+      quizAPI.updateAnswer(
+        state.currentQuiz._id,
+        state.session._id,
+        questionId,
+        answer
+      ).catch((error) => {
         console.error('Failed to update answer:', error);
-      }
+      });
     }
   };
 

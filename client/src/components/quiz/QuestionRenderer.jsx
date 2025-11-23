@@ -159,7 +159,7 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
           </FormControl>
         );
 
-      case 'fill-in-the-blank':
+case 'fill-in-the-blank':
         // Parse question text for [blank] placeholders
         const questionText = question.question || '';
         const blankRegex = /\[blank\]/g;
@@ -206,32 +206,39 @@ const QuestionRenderer = ({ question, questionIndex, totalQuestions, currentAnsw
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              {finalSegments.map((segment, index) => (
-                <React.Fragment key={index}>
-                  {segment}
-                  {index < finalSegments.length - 1 && (
-                    <TextField
-                      size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
-                      label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
-                      value={(currentAnswer && currentAnswer[index]) || ''}
-                      onChange={(e) => {
-                        const currentAnswers = currentAnswer || [];
-                        const newAnswers = [...currentAnswers];
-                        newAnswers[index] = e.target.value;
-                        handleAnswerChange(newAnswers);
-                      }}
-                      sx={{
-                        mx: 1,
-                        minWidth: effectiveBlanks[index]?.size === 'large' ? 200 :
-                                 effectiveBlanks[index]?.size === 'small' ? 100 : 150,
-                        verticalAlign: 'baseline'
-                      }}
-                      variant="outlined"
-                      placeholder="Enter answer"
-                    />
-                  )}
-                </React.Fragment>
-              ))}
+              {finalSegments.map((segment, index) => {
+                const answerValue = currentAnswer && Array.isArray(currentAnswer)
+                  ? currentAnswer[index] || ''
+                  : '';
+                return (
+                  <React.Fragment key={index}>
+                    {segment}
+                    {index < finalSegments.length - 1 && (
+                      <TextField
+                        size={effectiveBlanks[index]?.size === 'small' ? 'small' : 'medium'}
+                        label={effectiveBlanks[index]?.hint ? `Hint: ${effectiveBlanks[index].hint}` : `Blank ${index + 1}`}
+                        value={answerValue}
+                        onChange={(e) => {
+                          e.persist();
+                          const currentAnswers = currentAnswer && Array.isArray(currentAnswer)
+                            ? [...currentAnswer]
+                            : [];
+                          currentAnswers[index] = e.target.value;
+                          handleAnswerChange(currentAnswers);
+                        }}
+                        sx={{
+                          mx: 1,
+                          minWidth: effectiveBlanks[index]?.size === 'large' ? 200 :
+                                   effectiveBlanks[index]?.size === 'small' ? 100 : 150,
+                          verticalAlign: 'baseline'
+                        }}
+                        variant="outlined"
+                        placeholder="Enter answer"
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </Typography>
           </Box>
         );
