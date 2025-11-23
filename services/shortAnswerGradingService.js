@@ -262,7 +262,7 @@ class ShortAnswerGradingService {
         (keywordResult.score >= 1.0 ? 1.0 : 0.0);
 
       const misconceptionCheck = this.detectMisconceptions(studentAnswer, correctAnswer.text);
-      const offTopicCheck = this.detectOffTopic(studentAnswer, correctAnswer.text);
+      const offTopicCheck = await this.detectOffTopic(studentAnswer, correctAnswer.text);
 
       if (combinedScore > bestResult.score) {
         bestResult = {
@@ -473,8 +473,8 @@ class ShortAnswerGradingService {
     return { detected: false };
   }
 
-  detectOffTopic(studentAnswer, correctAnswer) {
-    const semanticSim = this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
+  async detectOffTopic(studentAnswer, correctAnswer) {
+    const semanticSim = await this.calculateSemanticSimilarity(studentAnswer, correctAnswer);
     const studentWords = this.extractKeywords(this.normalizeText(studentAnswer));
     const correctWords = this.extractKeywords(this.normalizeText(correctAnswer));
 
