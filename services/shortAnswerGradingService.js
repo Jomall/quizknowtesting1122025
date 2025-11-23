@@ -358,12 +358,21 @@ class ShortAnswerGradingService {
     let totalWeight = 0;
     let matchedWeight = 0;
 
+    // To implement order-insensitive matching,
+    // create copies of keywords arrays to track matches
+    const unmatchedStudentKeywords = [...studentKeywords];
+    const unmatchedCorrectKeywords = [...correctKeywords];
+
     for (const correctKw of correctKeywords) {
       totalWeight += correctKw.weight;
-      let found = false;
-      let bestMatchWeight = 0;
+    }
 
-      for (const studentKw of studentKeywords) {
+    // Attempt to match each correct keyword with any student keyword disregarding order
+    unmatchedCorrectKeywords.forEach((correctKw) => {
+      let bestMatchScore = 0;
+      let bestMatchIndex = -1;
+
+      unmatchedStudentKeywords.forEach((studentKw, idx) => {
         let similarity = 0;
 
         if (studentKw.word === correctKw.word) {
@@ -379,18 +388,19 @@ class ShortAnswerGradingService {
           }
         }
 
-        if (similarity > 0) {
-          found = true;
-          bestMatchWeight = Math.max(bestMatchWeight, similarity * correctKw.weight);
-          break;
+        if (similarity > bestMatchScore) {
+          bestMatchScore = similarity;
+          bestMatchIndex = idx;
         }
-      }
+      });
 
-      if (found) {
+      if (bestMatchScore > 0 && bestMatchIndex !== -1) {
         matchedCount++;
-        matchedWeight += bestMatchWeight;
+        matchedWeight += bestMatchScore * correctKw.weight;
+        // Remove matched student keyword to prevent multiple matches
+        unmatchedStudentKeywords.splice(bestMatchIndex, 1);
       }
-    }
+    });
 
     const score = totalWeight > 0 ? matchedWeight / totalWeight : 0;
 
