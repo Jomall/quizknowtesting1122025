@@ -1,8 +1,6 @@
 const natural = require('natural');
 const compromise = require('compromise');
 const SentenceTokenizer = require('sentence-tokenizer');
-const { pipeline } = require('@xenova/transformers'); // Added missing import
-
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
@@ -69,6 +67,8 @@ class EssayGradingService {
    */
   async initializeBERT() {
     try {
+      // Dynamically import pipeline from @xenova/transformers ESM module
+      const { pipeline } = await import('@xenova/transformers');
       // Load pre-trained BERT model for semantic similarity
       this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       console.log('BERT model loaded successfully');
@@ -338,7 +338,7 @@ class EssayGradingService {
       score: combinedScore,
       semanticSimilarity,
       combinedScore,
-      analysis: `${keywordResult.analysis} | Semantic similarity: ${Math.round(semanticSimilarity * 100)}%`
+      analysis: \`\${keywordResult.analysis} | Semantic similarity: \${Math.round(semanticSimilarity * 100)}%\`
     };
   }
 
