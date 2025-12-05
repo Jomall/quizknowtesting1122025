@@ -71,9 +71,9 @@ const HomePage = () => {
   ];
 
   const [stats, setStats] = useState({
-    activeUsers: '10K+',
-    quizzesCreated: '50K+',
-    questionsAnswered: '500K+',
+    activeUsers: 5,
+    quizzesCreated: 2,
+    questionsAnswered: 51,
     satisfactionRate: 95,
   });
 

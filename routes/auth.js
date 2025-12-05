@@ -80,6 +80,7 @@ router.post('/register', [
       }
     });
   } catch (error) {
+    console.error("Error in POST /login:", error.stack || error);
     res.status(500).json({ message: error.message });
   }
 });

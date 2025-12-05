@@ -31,6 +31,7 @@ router.get('/search', auth, authorize('admin'), checkSuspended, async (req, res)
 
     res.json(users);
   } catch (error) {
+    console.error("Error in GET /search:", error.stack || error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -41,6 +42,7 @@ router.get('/', auth, authorize('admin'), checkSuspended, async (req, res) => {
     const users = await User.find().select('-password').sort({ lastSeen: -1 });
     res.json(users);
   } catch (error) {
+    console.error("Error in GET /global-stats:", error.stack || error);
     res.status(500).json({ message: error.message });
   }
 });
