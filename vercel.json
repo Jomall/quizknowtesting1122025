@@ -26,7 +26,7 @@
   "outputDirectory": "client/build",
   "env": {
     "NODE_ENV": "production",
-    "MONGODB_URI": "mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/quizknow?appName=quizknow-cluster",
+    "MONGODB_URI": "mongodb+srv://Jomall:Jaedon@532@quizknow-cluster.9iwzfgz.mongodb.net/",
     "JWT_SECRET": "6e20c84fc95d18146b5226cb6fa90be67e813dd5344ab87a580b89d41f73f9da0cb4724d68af89e403a8331bbf60edd75425283a0f4b2a9c73a78e53d2e142cf",
     "BLOB_READ_WRITE_TOKEN": "vercel_blob_rw_lpB2hxhVUH660AQ0_gl6PfnnmQlzgIbfH51v718K1VyIOA0"
   }
