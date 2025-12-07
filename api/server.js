@@ -119,17 +119,12 @@ app.use('/uploads', express.static('uploads'));
 
 // Database connection middleware for serverless
 app.use(async (req, res, next) => {
-  if (process.env.VERCEL) {
-    // Skip DB connection in Vercel
+  try {
+    await connectDB();
     next();
-  } else {
-    try {
-      await connectDB();
-      next();
-    } catch (error) {
-      console.error('Database connection error:', error);
-      res.status(500).json({ message: 'Database connection failed' });
-    }
+  } catch (error) {
+    console.error('Database connection error:', error);
+    res.status(500).json({ message: 'Database connection failed' });
   }
 });
 
@@ -145,14 +140,17 @@ const contentRoutes = require('../routes/content');
 const connectionRoutes = require('../routes/connections');
 const submissionRoutes = require('../routes/submissions');
 
+// Determine API prefix based on environment
+const apiPrefix = process.env.VERCEL ? '' : '/api';
+
 // Routes - mounted synchronously
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/quizzes', quizRoutes);
-app.use('/api/quiz', quizDetailedRoutes);
-app.use('/api/content', contentRoutes);
-app.use('/api/connections', connectionRoutes);
-app.use('/api/submissions', submissionRoutes);
+app.use(apiPrefix + '/auth', authRoutes);
+app.use(apiPrefix + '/users', userRoutes);
+app.use(apiPrefix + '/quizzes', quizRoutes);
+app.use(apiPrefix + '/quiz', quizDetailedRoutes);
+app.use(apiPrefix + '/content', contentRoutes);
+app.use(apiPrefix + '/connections', connectionRoutes);
+app.use(apiPrefix + '/submissions', submissionRoutes);
 
 // Database connection with caching for serverless
 let cached = global.mongoose;
