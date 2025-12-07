@@ -119,12 +119,17 @@ app.use('/uploads', express.static('uploads'));
 
 // Database connection middleware for serverless
 app.use(async (req, res, next) => {
-  try {
-    await connectDB();
+  if (process.env.VERCEL) {
+    // Skip DB connection in Vercel
     next();
-  } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ message: 'Database connection failed' });
+  } else {
+    try {
+      await connectDB();
+      next();
+    } catch (error) {
+      console.error('Database connection error:', error);
+      res.status(500).json({ message: 'Database connection failed' });
+    }
   }
 });
 
@@ -190,11 +195,13 @@ async function connectDB() {
 
 // Initialize database and other async operations
 async function initializeApp() {
-  await connectDB();
+  if (!process.env.VERCEL) {
+    await connectDB();
 
-  // Ensure indexes are created
-  const User = require('../models/User');
-  await User.syncIndexes();
+    // Ensure indexes are created
+    const User = require('../models/User');
+    await User.syncIndexes();
+  }
 
   // Socket.io for real-time notifications (only if not in Vercel)
   if (io) {
