@@ -1,6 +1,5 @@
 const natural = require('natural');
 const compromise = require('compromise');
-const { pipeline } = require('@xenova/transformers');
 const SentenceTokenizer = require('sentence-tokenizer');
 
 // Initialize NLP tools
@@ -57,6 +56,7 @@ class ShortAnswerGradingService {
 
   async initializeBERT() {
     try {
+      const { pipeline } = await import('@xenova/transformers');
       this.bertModel = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       console.log('BERT model loaded successfully for short answer grading');
     } catch (error) {
