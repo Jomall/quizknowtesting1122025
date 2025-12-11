@@ -94,6 +94,7 @@ router.get('/instructors', async (req, res) => {
 
     res.json(instructorsWithCounts);
   } catch (error) {
+    console.error('Error fetching global stats:', error);
     res.status(500).json({ message: error.message });
   }
 });
