@@ -222,15 +222,8 @@ async function initializeApp() {
   return app;
 }
 
-// Serve static files from client/build for non-API routes
-if (process.env.VERCEL) {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-
-  // Catch all handler: send back React's index.html file for client-side routing
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build/index.html'));
-  });
-}
+// Static file serving is handled by Vercel configuration in vercel.json
+// No need to serve static files or catch-all routes in serverless function
 
 // For Vercel serverless functions
 if (process.env.VERCEL) {
