@@ -213,7 +213,7 @@ const HomePage = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="h3" color="primary.main" gutterBottom>
-                95%
+                {stats.satisfactionRate}%
               </Typography>
               <Typography variant="h6" color="text.secondary">
                 Satisfaction Rate
