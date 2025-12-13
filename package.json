@@ -2,10 +2,10 @@
   "name": "quizknow-app4",
   "version": "1.0.0",
   "description": "A comprehensive quiz management system with Student, Instructor, and Admin roles",
-  "main": "server.js",
+  "main": "api/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "nodemon api/server.js",
+    "server": "nodemon api/index.js",
     "server-test": "nodemon server-test.js",
     "client": "cd client && npm start",
     "build": "cd client && npm install && npm run build",

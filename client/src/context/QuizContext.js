@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 
@@ -196,7 +196,7 @@ export const QuizProvider = ({ children }) => {
     }
   };
 
-  const getUserQuizzes = async () => {
+  const getUserQuizzes = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/quiz/user?t=${Date.now()}`, {
@@ -207,9 +207,9 @@ export const QuizProvider = ({ children }) => {
       console.error('Error fetching user quizzes:', error);
       return [];
     }
-  };
+  }, []);
 
-  const getQuizStats = async () => {
+  const getQuizStats = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/users/quiz-stats`, {
@@ -225,7 +225,7 @@ export const QuizProvider = ({ children }) => {
         totalTime: 0,
       };
     }
-  };
+  }, []);
 
   const getAvailableQuizzes = useCallback(async () => {
     try {
@@ -248,7 +248,7 @@ export const QuizProvider = ({ children }) => {
     }
   }, []);
 
-  const getPendingQuizzes = async () => {
+  const getPendingQuizzes = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/quizzes/pending`, {
@@ -259,7 +259,7 @@ export const QuizProvider = ({ children }) => {
       console.error('Error fetching pending quizzes:', error);
       return [];
     }
-  };
+  }, []);
 
   const getSubmittedQuizzes = async () => {
     try {
