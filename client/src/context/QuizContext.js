@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 
