@@ -141,7 +141,7 @@ const connectionRoutes = require('../routes/connections');
 const submissionRoutes = require('../routes/submissions');
 
 // Determine API prefix based on environment
-const apiPrefix = process.env.VERCEL ? '' : '/api';
+const apiPrefix = '/api';
 
 // Routes - mounted synchronously
 app.use(apiPrefix + '/auth', authRoutes);
@@ -151,6 +151,11 @@ app.use(apiPrefix + '/quiz', quizDetailedRoutes);
 app.use(apiPrefix + '/content', contentRoutes);
 app.use(apiPrefix + '/connections', connectionRoutes);
 app.use(apiPrefix + '/submissions', submissionRoutes);
+
+// Serve manifest.json
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build/manifest.json'));
+});
 
 // Database connection with caching for serverless
 let cached = global.mongoose;
