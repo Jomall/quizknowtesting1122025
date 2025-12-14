@@ -8,6 +8,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { put } = require('@vercel/blob');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 
 dotenv.config({ path: '.env.local' });
 
@@ -171,25 +172,40 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/quizknow';
-    console.log('Connecting to MongoDB at:', mongoUri);
+    // For development, use local MongoDB first
+    const mongoUri = process.env.NODE_ENV === 'test' ? 'mongodb://localhost:27017/quizknow-test' : 'mongodb://localhost:27017/quizknow';
+    console.log('Connecting to local MongoDB at:', mongoUri);
 
     cached.promise = mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+      serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      maxPoolSize: 10, // Maintain up to 10 socket connections
+      maxPoolSize: 10,
     }).then((mongoose) => {
-      console.log('MongoDB connected successfully');
+      console.log('Local MongoDB connected successfully');
       return mongoose;
+    }).catch(async (localError) => {
+      console.log('Local MongoDB connection failed, falling back to MongoDB Memory Server:', localError.message);
+      // Fallback to MongoDB Memory Server
+      const mongoServer = await MongoMemoryServer.create();
+      const memoryUri = mongoServer.getUri();
+      console.log('Connecting to MongoDB Memory Server at:', memoryUri);
+
+      return mongoose.connect(memoryUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }).then((mongoose) => {
+        console.log('MongoDB Memory Server connected successfully');
+        return mongoose;
+      });
     });
   }
 
   try {
     cached.conn = await cached.promise;
   } catch (err) {
-    console.error('MongoDB connection error:', err);
+    console.error('Database connection error:', err);
     throw err;
   }
 
@@ -198,13 +214,14 @@ async function connectDB() {
 
 // Initialize database and other async operations
 async function initializeApp() {
-  if (!process.env.VERCEL) {
-    await connectDB();
-
-    // Ensure indexes are created
-    const User = require('../models/User');
-    await User.syncIndexes();
-  }
+  // Temporarily skip database connection
+  // if (!process.env.VERCEL) {
+  //   await connectDB();
+  //
+  //   // Ensure indexes are created
+  //   const User = require('../models/User');
+  //   await User.syncIndexes();
+  // }
 
   // Socket.io for real-time notifications (only if not in Vercel)
   if (io) {

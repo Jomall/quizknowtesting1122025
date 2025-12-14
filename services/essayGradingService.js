@@ -482,6 +482,264 @@ class EssayGradingService {
   }
 
   /**
+   * Parse expected answer into individual sentences for essay grading
+   * @param {string} expectedAnswer - Teacher's expected answer
+   * @returns {Array} Array of expected sentences
+   */
+  parseExpectedSentences(expectedAnswer) {
+    if (!expectedAnswer) return [];
+
+    const sentences = this.sentenceTokenizer.sentences(expectedAnswer);
+    return sentences.map(sentence => sentence.trim()).filter(sentence => sentence.length > 0);
+  }
+
+  /**
+   * Calculate syntactic similarity between two sentences (structural similarity)
+   * @param {string} sentence1
+   * @param {string} sentence2
+   * @returns {number} Similarity score between 0 and 1
+   */
+  calculateSyntacticSimilarity(sentence1, sentence2) {
+    try {
+      const doc1 = this.nlp(sentence1);
+      const doc2 = this.nlp(sentence2);
+
+      // Extract POS tags
+      const pos1 = doc1.out('tags');
+      const pos2 = doc2.out('tags');
+
+      // Simple POS sequence similarity
+      const posSeq1 = pos1.map(token => token.tags[0]).join(' ');
+      const posSeq2 = pos2.map(token => token.tags[0]).join(' ');
+
+      // Calculate sequence similarity
+      return this.sequenceSimilarity(posSeq1, posSeq2);
+    } catch (error) {
+      console.error('Syntactic similarity calculation failed:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate sequence similarity using Levenshtein distance
+   * @param {string} seq1
+   * @param {string} seq2
+   * @returns {number} Similarity score between 0 and 1
+   */
+  sequenceSimilarity(seq1, seq2) {
+    const longer = seq1.length > seq2.length ? seq1 : seq2;
+    const shorter = seq1.length > seq2.length ? seq2 : seq1;
+
+    if (longer.length === 0) return 1.0;
+
+    const distance = natural.LevenshteinDistance(longer, shorter);
+    return (longer.length - distance) / longer.length;
+  }
+
+  /**
+   * Calculate sentence-level semantic similarity using BERT or fallback
+   * @param {string} sentence1
+   * @param {string} sentence2
+   * @returns {Promise<number>} Similarity score between 0 and 1
+   */
+  async calculateSentenceSemanticSimilarity(sentence1, sentence2) {
+    if (this.bertModel) {
+      try {
+        const embedding1 = await this.bertModel(sentence1, { pooling: 'mean', normalize: true });
+        const embedding2 = await this.bertModel(sentence2, { pooling: 'mean', normalize: true });
+        return this.cosineSimilarity(embedding1.data, embedding2.data);
+      } catch (error) {
+        console.error('BERT sentence similarity failed:', error);
+      }
+    }
+
+    // Fallback to basic semantic similarity
+    return this.calculateSemanticSimilarity(sentence1, sentence2);
+  }
+
+  /**
+   * Match student sentences against expected sentences
+   * @param {Array} studentSentences
+   * @param {Array} expectedSentences
+   * @param {Object} options
+   * @returns {Object} Matching results
+   */
+  async matchSentencesToExpected(studentSentences, expectedSentences, options = {}) {
+    const { syntacticWeight = 0.3, semanticWeight = 0.7, threshold = 0.6 } = options;
+
+    const matches = [];
+    const unmatchedExpected = [...expectedSentences];
+
+    for (const studentSentence of studentSentences) {
+      let bestMatch = null;
+      let bestScore = 0;
+
+      for (let i = 0; i < unmatchedExpected.length; i++) {
+        const expectedSentence = unmatchedExpected[i];
+
+        const syntacticSim = this.calculateSyntacticSimilarity(studentSentence, expectedSentence);
+        const semanticSim = await this.calculateSentenceSemanticSimilarity(studentSentence, expectedSentence);
+
+        const combinedScore = syntacticSim * syntacticWeight + semanticSim * semanticWeight;
+
+        if (combinedScore > bestScore && combinedScore >= threshold) {
+          bestScore = combinedScore;
+          bestMatch = { index: i, sentence: expectedSentence, score: combinedScore };
+        }
+      }
+
+      if (bestMatch) {
+        matches.push({
+          studentSentence,
+          expectedSentence: bestMatch.sentence,
+          score: bestMatch.score,
+          syntacticSimilarity: this.calculateSyntacticSimilarity(studentSentence, bestMatch.sentence),
+          semanticSimilarity: await this.calculateSentenceSemanticSimilarity(studentSentence, bestMatch.sentence)
+        });
+        unmatchedExpected.splice(bestMatch.index, 1);
+      }
+    }
+
+    return {
+      matched: matches,
+      unmatchedExpected,
+      coverage: matches.length / expectedSentences.length,
+      totalExpected: expectedSentences.length,
+      matchedCount: matches.length
+    };
+  }
+
+  /**
+   * Analyze logical organization of sentences in essay
+   * @param {Array} studentSentences
+   * @param {Array} expectedSentences
+   * @returns {Object} Organization analysis
+   */
+  analyzeLogicalOrganization(studentSentences, expectedSentences) {
+    const organization = {
+      expectedOrderFound: 0,
+      logicalFlow: [],
+      coherenceScore: 0
+    };
+
+    // Simple approach: check if expected sentences appear in similar order
+    let lastExpectedIndex = -1;
+
+    for (const studentSentence of studentSentences) {
+      for (let i = 0; i < expectedSentences.length; i++) {
+        const expectedSentence = expectedSentences[i];
+        const similarity = this.calculateSemanticSimilarity(studentSentence, expectedSentence);
+
+        if (similarity > 0.7) { // High similarity threshold
+          if (i > lastExpectedIndex) {
+            organization.expectedOrderFound++;
+            lastExpectedIndex = i;
+          }
+          organization.logicalFlow.push({
+            studentSentence,
+            expectedSentence,
+            position: i,
+            similarity
+          });
+          break;
+        }
+      }
+    }
+
+    organization.coherenceScore = expectedSentences.length > 0 ?
+      organization.expectedOrderFound / expectedSentences.length : 0;
+
+    return organization;
+  }
+
+  /**
+   * Enhanced essay grading with sentence-level matching and completeness scoring
+   * @param {string} studentAnswer
+   * @param {string} expectedAnswer
+   * @param {Object} options
+   * @returns {Promise<Object>} Comprehensive grading result
+   */
+  async gradeEssayWithSentenceMatching(studentAnswer, expectedAnswer, options = {}) {
+    const {
+      useBERT = true,
+      keywordWeight = 0.3,
+      sentenceWeight = 0.4,
+      completenessWeight = 0.2,
+      organizationWeight = 0.1,
+      syntacticWeight = 0.3,
+      semanticWeight = 0.7,
+      sentenceThreshold = 0.6
+    } = options;
+
+    // Parse expected sentences
+    const expectedSentences = this.parseExpectedSentences(expectedAnswer);
+    const studentSentences = this.sentenceTokenizer.sentences(studentAnswer);
+
+    // Keyword matching (existing functionality)
+    const keywordResult = this.gradeEssay(studentAnswer, expectedAnswer, options);
+
+    // Sentence-level matching
+    const sentenceMatches = await this.matchSentencesToExpected(
+      studentSentences,
+      expectedSentences,
+      { syntacticWeight, semanticWeight, threshold: sentenceThreshold }
+    );
+
+    // Logical organization analysis
+    const organizationAnalysis = this.analyzeLogicalOrganization(studentSentences, expectedSentences);
+
+    // Calculate completeness score
+    const completenessScore = sentenceMatches.coverage;
+
+    // Calculate final score
+    const keywordScore = keywordResult.score * keywordWeight;
+    const sentenceScore = sentenceMatches.coverage * sentenceWeight;
+    const completenessScoreWeighted = completenessScore * completenessWeight;
+    const organizationScore = organizationAnalysis.coherenceScore * organizationWeight;
+
+    const totalScore = keywordScore + sentenceScore + completenessScoreWeighted + organizationScore;
+
+    return {
+      ...keywordResult,
+      score: Math.min(totalScore, 1.0),
+      sentenceMatches,
+      organizationAnalysis,
+      completenessScore,
+      componentScores: {
+        keywords: keywordScore,
+        sentences: sentenceScore,
+        completeness: completenessScoreWeighted,
+        organization: organizationScore
+      },
+      analysis: this.generateSentenceMatchingAnalysis(
+        keywordResult,
+        sentenceMatches,
+        organizationAnalysis,
+        completenessScore
+      )
+    };
+  }
+
+  /**
+   * Generate analysis for sentence matching grading
+   */
+  generateSentenceMatchingAnalysis(keywordResult, sentenceMatches, organizationAnalysis, completenessScore) {
+    let analysis = keywordResult.analysis;
+
+    analysis += ` | Sentence coverage: ${sentenceMatches.matchedCount}/${sentenceMatches.totalExpected} (${Math.round(completenessScore * 100)}%)`;
+
+    if (organizationAnalysis.coherenceScore > 0) {
+      analysis += ` | Logical organization: ${Math.round(organizationAnalysis.coherenceScore * 100)}%`;
+    }
+
+    if (sentenceMatches.unmatchedExpected.length > 0) {
+      analysis += ` | Missing key points: ${sentenceMatches.unmatchedExpected.length}`;
+    }
+
+    return analysis;
+  }
+
+  /**
    * Comprehensive essay grading combining keywords, semantics, structure, and entities with weighting
    */
   async gradeEssayComprehensive(studentAnswer, correctAnswer, rubric = {}, options = {}) {
@@ -489,10 +747,12 @@ class EssayGradingService {
       useBERT = true,
       analyzeSentences = true,
       extractEntities = true,
+      useSentenceMatching = true,
       weights = {
-        keywords: 0.4,
-        semantics: 0.3,
-        structure: 0.2,
+        keywords: 0.3,
+        semantics: 0.2,
+        sentences: 0.3,
+        structure: 0.1,
         entities: 0.1
       }
     } = options;
@@ -509,12 +769,18 @@ class EssayGradingService {
     const sentenceAnalysis = analyzeSentences ? this.analyzeSentenceStructure(studentAnswer) : {};
     const entities = extractEntities ? this.extractNamedEntities(studentAnswer) : {};
 
+    let sentenceMatchingResult = {};
+    if (useSentenceMatching) {
+      sentenceMatchingResult = await this.gradeEssayWithSentenceMatching(studentAnswer, correctAnswer, options);
+    }
+
     const keywordScore = keywordResult.score * weights.keywords;
     const semanticScore = semanticSimilarity * weights.semantics;
+    const sentenceScore = (sentenceMatchingResult.completenessScore || 0) * weights.sentences;
     const structureScore = sentenceAnalysis.coherenceScore * weights.structure;
     const entityScore = (entities.technicalTerms && entities.technicalTerms.length > 0 ? 0.5 : 0) * weights.entities;
 
-    const totalScore = keywordScore + semanticScore + structureScore + entityScore;
+    const totalScore = keywordScore + semanticScore + sentenceScore + structureScore + entityScore;
 
     return {
       ...keywordResult,
@@ -522,9 +788,11 @@ class EssayGradingService {
       semanticSimilarity,
       sentenceAnalysis,
       entities,
+      sentenceMatching: sentenceMatchingResult,
       componentScores: {
         keywords: keywordScore,
         semantics: semanticScore,
+        sentences: sentenceScore,
         structure: structureScore,
         entities: entityScore
       },

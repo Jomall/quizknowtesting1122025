@@ -148,8 +148,8 @@ if (question.type === 'fill-in-the-blank') {
     quiz.students[studentIndex].submittedAt = new Date();
     await quiz.save();
 
-    // Auto-complete if manual review not required
-    if (!quiz.settings.requireManualReview) {
+    // Auto-complete if manual review not required or grading mode is auto
+    if (!quiz.settings.requireManualReview && quiz.settings.gradingMode === 'auto') {
       submission.isCompleted = true;
       submission.reviewedAt = new Date();
       await submission.save();

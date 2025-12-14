@@ -6,7 +6,7 @@ dotenv.config({ path: '.env.local' });
 async function testConnection() {
   try {
     console.log('Testing MongoDB connection...');
-    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Jomall:Jaedon532@quizknow-cluster.9iwzfgz.mongodb.net/quizknow';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Jomall:DmPBC99OBd2ylPxk@quizknow-cluster.9iwzfgz.mongodb.net/quizknow';
     console.log('URI:', mongoUri.replace(/:([^:@]{4})[^:@]*@/, ':***@').replace(/\/\/([^:]+):/, '//***:'));
 
     await mongoose.connect(mongoUri, {

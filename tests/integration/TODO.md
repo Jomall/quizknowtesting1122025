@@ -1,35 +1,25 @@
-# TODO: Enhance Short Answer Grading and Correction Logic
+# TODO: Implement Essay Grading Enhancements and Manual Grading Option
 
-## Plan Overview
-Enhance the existing short answer grading service to improve grading robustness and correctness, including order-insensitive keyword matching.
+## Essay Grading Service Enhancements
+- [x] Add sentence parsing method to extract expected sentences from teacher's answer
+- [x] Implement sentence-level syntactic matching (structural similarity)
+- [x] Implement sentence-level semantic similarity using BERT or compromise
+- [x] Add completeness scoring based on coverage of expected sentences
+- [x] Enhance content relevance checking
+- [x] Improve logical organization analysis (sentence order)
+- [x] Update existing grading methods to integrate sentence-level criteria
+- [ ] Test enhanced essay grading with sample questions
 
-## Steps
+## Manual Grading Feature
+- [x] Update quiz model/schema to include grading mode (auto/manual)
+- [ ] Modify QuestionBuilder.jsx to add grading mode selection UI
+- [ ] Update quiz creation API to store grading mode
+- [x] Modify grading API (routes/submissions.js) to handle manual grading workflow
+- [ ] Implement pending grade status for manual grading
+- [ ] Add instructor review interface for manual grading
+- [ ] Update grade rendering logic to show final grades only after review for manual mode
 
-1. Enhance synonym dictionary management for extended coverage.
-
-2. Improve keyword matching logic in shortAnswerGradingService:
-   - Implement order-insensitive matching of student answers against correct answers.
-   - Use stemming, synonyms, and fuzzy matching robustly.
-
-3. Improve semantic similarity calculations:
-   - Add error handling and fallback mechanisms.
-   - Support optional model refreshing.
-
-4. Expand misconception detection with more patterns and context-awareness.
-
-5. Add detection of contradictory or ambiguous student responses.
-
-6. Implement configurable confidence thresholds for grading.
-
-7. Improve partial credit scoring for granular keyword and semantic weighting.
-
-8. Add logging for grading decisions analytics.
-
-9. Update and expand tests in test_short_answer_grading_mocked.js:
-   - Add tests for order-insensitive matching.
-   - Add tests for new misconception patterns and other improvements.
-
-## Follow-up
-
-- Run all tests to validate enhancements.
-- Review grading performance with sample data.
+## Integration and Testing
+- [ ] Ensure integration with existing quiz grading API
+- [ ] Test auto vs manual grading workflows
+- [ ] Update any dependent components or services
