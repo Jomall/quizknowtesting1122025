@@ -263,6 +263,11 @@ const quizSchema = new mongoose.Schema({
     requireManualReview: {
       type: Boolean,
       default: false
+    },
+    gradingMode: {
+      type: String,
+      enum: ['auto', 'manual'],
+      default: 'auto'
     }
   },
   essayGradingSettings: {

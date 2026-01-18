@@ -5,7 +5,7 @@ require('dotenv').config();
 async function checkUsers() {
   try {
     // Connect to production MongoDB
-    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Jomall:IlhrnmowW6YDcABG@quizknow-cluster.9iwzfgz.mongodb.net/';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Jomall:DmPBC99OBd2ylPxk@quizknow-cluster.9iwzfgz.mongodb.net/quizknow';
     console.log('Connecting to production MongoDB...');
     await mongoose.connect(mongoUri);
 

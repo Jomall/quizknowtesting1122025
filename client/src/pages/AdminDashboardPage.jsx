@@ -68,6 +68,9 @@ const AdminDashboardPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [userToReset, setUserToReset] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -519,6 +522,50 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const handleResetPassword = (user) => {
+    setUserToReset(user);
+    setNewPassword('');
+    setResetPasswordDialogOpen(true);
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!userToReset || !newPassword.trim()) {
+      alert('Please enter a new password');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/users/change-password/${userToReset.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword })
+      });
+
+      if (response.ok) {
+        alert(`Password for ${userToReset.name} has been reset successfully`);
+        setResetPasswordDialogOpen(false);
+        setUserToReset(null);
+        setNewPassword('');
+      } else {
+        const errorData = await response.json();
+        alert(`Error resetting password: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      alert('Error resetting password: Network error');
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4 }}>
@@ -706,7 +753,10 @@ const AdminDashboardPage = () => {
                               size="small"
                               color={user.role === 'student' ? 'primary' : user.role === 'instructor' ? 'info' : 'secondary'}
                             />
-                            <Button onClick={(e) => { e.stopPropagation(); handleSuspendUser(user); }} variant="outlined" color={user.isSuspended ? "success" : "error"} startIcon={user.isSuspended ? <CheckCircleIcon /> : <BlockIcon />}>
+                            <Button onClick={(e) => { e.stopPropagation(); handleResetPassword(user); }} variant="outlined" color="warning" size="small">
+                              Reset Password
+                            </Button>
+                            <Button onClick={(e) => { e.stopPropagation(); handleSuspendUser(user); }} variant="outlined" color={user.isSuspended ? "success" : "error"} size="small" startIcon={user.isSuspended ? <CheckCircleIcon /> : <BlockIcon />}>
                               {user.isSuspended ? 'Unblock' : 'Block'}
                             </Button>
                             <IconButton edge="end" onClick={(e) => { e.stopPropagation(); handleDeleteUser(user); }}>
@@ -1127,6 +1177,32 @@ const AdminDashboardPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setProfileDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={resetPasswordDialogOpen} onClose={() => setResetPasswordDialogOpen(false)}>
+        <DialogTitle>Reset Password</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            Enter a new password for {userToReset?.name}.
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="New Password"
+            type="password"
+            fullWidth
+            variant="outlined"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            inputProps={{ minLength: 6 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetPasswordDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleConfirmResetPassword} variant="contained" color="warning">
+            Reset Password
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

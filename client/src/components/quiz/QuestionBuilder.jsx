@@ -61,6 +61,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
         keywordWeight: 0.7,
       },
       keywordWeights: {},
+      gradingMode: 'auto', // Add grading mode for individual questions
     };
   };
 
@@ -994,7 +995,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Question Type</InputLabel>
               <Select
@@ -1013,7 +1014,7 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Points"
@@ -1023,6 +1024,19 @@ const QuestionBuilder = ({ question, onSave, onCancel }) => {
               margin="normal"
               inputProps={{ min: 1, max: 100 }}
             />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Grading Mode</InputLabel>
+              <Select
+                value={currentQuestion.gradingMode || 'auto'}
+                onChange={(e) => handleQuestionChange('gradingMode', e.target.value)}
+              >
+                <MenuItem value="auto">Auto Grade</MenuItem>
+                <MenuItem value="manual">Manual Review</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
 

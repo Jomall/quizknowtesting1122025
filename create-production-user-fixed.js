@@ -5,7 +5,7 @@ require('dotenv').config();
 async function createProductionUser() {
   try {
     // Connect to production MongoDB with explicit database name
-    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://quizknow-user:Jaedon@quizknow-cluster.9iwzfgz.mongodb.net/quizknow';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://Jomall:DmPBC99OBd2ylPxk@quizknow-cluster.9iwzfgz.mongodb.net/quizknow';
     console.log('Connecting to production MongoDB...');
     await mongoose.connect(mongoUri);
 
