@@ -4,8 +4,6 @@ import {
   Paper,
   Typography,
   Grid,
-  Card,
-  CardContent,
   Button,
   Dialog,
   DialogTitle,
@@ -20,9 +18,6 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
-  Alert,
-  Fab,
-  DialogContentText,
   List,
   ListItem,
   ListItemText,
@@ -34,7 +29,6 @@ import {
 import {
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as UncheckedIcon,
@@ -44,7 +38,6 @@ import {
   VideoLibrary as VideoLibraryIcon,
   Description as DescriptionIcon,
   Timer as TimerIcon,
-  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 // Using native HTML date input instead of MUI date picker for compatibility
 import { useAuth } from '../context/AuthContext';
@@ -129,12 +122,10 @@ const DEFAULT_TIMETABLE_SLOTS = [
 ];
 
 const Timetable = () => {
-  const [timetables, setTimetables] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentTimetable, setCurrentTimetable] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingSlot, setEditingSlot] = useState(null);
   const [slotForm, setSlotForm] = useState({
     startTime: '',
     endTime: '',
@@ -147,8 +138,6 @@ const Timetable = () => {
     repetitionInterval: 1,
     notes: '',
   });
-  const [availableQuizzes, setAvailableQuizzes] = useState([]);
-  const [availableContent, setAvailableContent] = useState([]);
   const [pomodoroActive, setPomodoroActive] = useState(false);
   const [pomodoroTimeLeft, setPomodoroTimeLeft] = useState(0);
   const [pomodoroBreak, setPomodoroBreak] = useState(false);
@@ -165,7 +154,6 @@ const Timetable = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: { date: selectedDate.toISOString().split('T')[0] }
       });
-      setTimetables(response.data);
       const todayTimetable = response.data.find(t => new Date(t.date).toISOString().split('T')[0] === selectedDate.toISOString().split('T')[0]);
       setCurrentTimetable(todayTimetable || null);
     } catch (error) {
@@ -175,27 +163,9 @@ const Timetable = () => {
     }
   }, [selectedDate]);
 
-  // Fetch available quizzes and content
-  const fetchAvailableItems = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const [quizzesRes, contentRes] = await Promise.all([
-        getAvailableQuizzes(),
-        axios.get(`${API_BASE_URL}/content/assigned`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-      setAvailableQuizzes(quizzesRes || []);
-      setAvailableContent(contentRes.data || []);
-    } catch (error) {
-      console.error('Error fetching available items:', error);
-    }
-  }, [getAvailableQuizzes]);
-
   useEffect(() => {
     fetchTimetables();
-    fetchAvailableItems();
-  }, [fetchTimetables, fetchAvailableItems]);
+  }, [fetchTimetables]);
 
   // Create default timetable
   const createDefaultTimetable = async () => {
