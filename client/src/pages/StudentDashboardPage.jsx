@@ -39,6 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import InstructorBrowser from '../components/common/InstructorBrowser';
+import Timetable from '../components/Timetable';
 import { printQuizResults } from '../utils/printResults';
 import authService from '../services/authService';
 import axios from 'axios';
@@ -673,6 +674,11 @@ const StudentDashboardPage = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Study Timetable Section */}
+      <Box sx={{ mt: 4 }}>
+        <Timetable />
+      </Box>
 
       {/* Instructor Browser Section */}
       <Box sx={{ mt: 4 }}>

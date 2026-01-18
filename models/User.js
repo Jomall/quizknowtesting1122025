@@ -83,6 +83,35 @@ const userSchema = new mongoose.Schema({
   lastSeen: {
     type: Date,
     default: null
+  },
+  energyPatterns: {
+    preference: {
+      type: String,
+      enum: ['lark', 'owl', 'balanced'],
+      default: 'balanced'
+    },
+    peakEnergyTime: {
+      type: String,
+      match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, // HH:MM format
+      default: '08:00'
+    },
+    sleepSchedule: {
+      bedtime: {
+        type: String,
+        match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+        default: '22:00'
+      },
+      wakeTime: {
+        type: String,
+        match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
+        default: '06:00'
+      }
+    },
+    workStyle: {
+      type: String,
+      enum: ['focused', 'flexible', 'social'],
+      default: 'focused'
+    }
   }
 });
 

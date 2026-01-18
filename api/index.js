@@ -140,6 +140,7 @@ const quizDetailedRoutes = require('../routes/quiz');
 const contentRoutes = require('../routes/content');
 const connectionRoutes = require('../routes/connections');
 const submissionRoutes = require('../routes/submissions');
+const timetableRoutes = require('../routes/timetables');
 
 // Determine API prefix based on environment
 const apiPrefix = '/api';
@@ -152,6 +153,7 @@ app.use(apiPrefix + '/quiz', quizDetailedRoutes);
 app.use(apiPrefix + '/content', contentRoutes);
 app.use(apiPrefix + '/connections', connectionRoutes);
 app.use(apiPrefix + '/submissions', submissionRoutes);
+app.use(apiPrefix + '/timetables', timetableRoutes);
 
 // Serve manifest.json
 app.get('/manifest.json', (req, res) => {
