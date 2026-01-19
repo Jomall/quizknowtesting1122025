@@ -143,7 +143,7 @@ const Timetable = () => {
   const [pomodoroBreak, setPomodoroBreak] = useState(false);
 
   const { user } = useAuth();
-  const { getAvailableQuizzes } = useQuiz();
+  const { } = useQuiz();
 
   // Fetch timetables
   const fetchTimetables = useCallback(async () => {
