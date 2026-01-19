@@ -34,13 +34,12 @@ import QuizKnowLogo from '../common/QuizKnowLogo';
 const Header = ({ user, onLogout }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount] = useState(0);
   const toggleRef = useRef(null);
   const drawerRef = useRef(null);
   const anchorRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     if (mobileOpen && drawerRef.current) {

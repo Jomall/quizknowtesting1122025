@@ -98,18 +98,6 @@ const InstructorDashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/messages/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUnreadCount(response.data.data.unreadCount);
-    } catch (error) {
-      console.error('Error fetching unread count:', error);
-    }
-  }, []);
-
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);

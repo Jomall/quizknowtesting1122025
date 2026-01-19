@@ -72,7 +72,6 @@ const AdminDashboardPage = () => {
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [userToReset, setUserToReset] = useState(null);
   const [newPassword, setNewPassword] = useState('');
-  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
 
