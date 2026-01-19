@@ -20,7 +20,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Fab,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -35,7 +34,6 @@ import {
   Link as LinkIcon,
   Print as PrintIcon,
   Lock as LockIcon,
-  Message as MessageIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
