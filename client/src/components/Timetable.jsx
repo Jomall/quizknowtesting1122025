@@ -428,7 +428,6 @@ const Timetable = () => {
                           <Tooltip title="Edit Slot">
                             <IconButton
                               onClick={() => {
-                                setEditingSlot(index);
                                 setSlotForm(slot);
                                 setEditDialogOpen(true);
                               }}
