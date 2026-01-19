@@ -61,7 +61,7 @@ import { useAuth } from '../context/AuthContext';
 import StudentSelector from '../components/common/StudentSelector';
 import ConnectionRequests from '../components/common/ConnectionRequests';
 import QuizList from '../components/quiz/QuizList';
-import Messaging from '../components/common/Messaging';
+
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 
@@ -91,12 +91,7 @@ const InstructorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [allContent, setAllContent] = useState([]);
-  const [gradingStats, setGradingStats] = useState({
-    autoGraded: 0,
-    peerGraded: 0,
-    instructorGraded: 0,
-    pendingPeerReviews: 0
-  });
+
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -145,37 +140,7 @@ const InstructorDashboardPage = () => {
     }
   }, [user]);
 
-  const loadGradingStats = useCallback(async (quizzes) => {
-    try {
-      let autoGraded = 0;
-      let peerGraded = 0;
-      let pendingPeerReviews = 0;
 
-      for (const quiz of quizzes) {
-        if (quiz.settings?.gradingMode === 'auto') {
-          autoGraded++;
-        } else if (quiz.settings?.gradingMode === 'peer') {
-          peerGraded++;
-          // Get peer grading stats for this quiz
-          try {
-            const response = await axios.get(`${API_BASE_URL}/peer-grading/stats/${quiz._id}`);
-            pendingPeerReviews += response.data.pendingAssignments;
-          } catch (error) {
-            console.error(`Error loading peer grading stats for quiz ${quiz._id}:`, error);
-          }
-        }
-      }
-
-      setGradingStats({
-        autoGraded,
-        peerGraded,
-        instructorGraded: quizzes.length - autoGraded - peerGraded,
-        pendingPeerReviews
-      });
-    } catch (error) {
-      console.error('Error loading grading stats:', error);
-    }
-  }, []);
 
   const loadAllAssignments = useCallback(async () => {
     try {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   List,
   ListItem,
@@ -10,12 +9,10 @@ import {
   Avatar,
   TextField,
   Button,
-  Divider,
   Chip,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   IconButton,
   Badge,
   Fab,
