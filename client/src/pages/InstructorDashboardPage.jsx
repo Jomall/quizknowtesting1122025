@@ -130,8 +130,7 @@ const InstructorDashboardPage = () => {
       setRecentQuizzes(quizzes.slice(0, 5));
       setRecentContent(content.slice(0, 5));
 
-      // Calculate grading statistics
-      await loadGradingStats(quizzes);
+
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error('Error loading dashboard:', err);
