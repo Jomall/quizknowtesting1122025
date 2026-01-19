@@ -119,8 +119,8 @@ router.get('/conversations', auth, checkSuspended, async (req, res) => {
   try {
     let conversations = [];
 
-    if (req.user.role === 'admin' || req.user.role === 'student') {
-      // For admins and students, show all users except themselves
+    if (req.user.role === 'admin') {
+      // For admins, show all users except themselves
       const users = await User.find({ _id: { $ne: req.user._id } }, 'username profile role')
         .sort({ 'profile.firstName': 1, 'profile.lastName': 1, username: 1 });
 
@@ -134,65 +134,80 @@ router.get('/conversations', auth, checkSuspended, async (req, res) => {
         lastMessage: null,
         unreadCount: 0
       }));
+    } else if (req.user.role === 'student') {
+      // For students, show connected instructors and admins
+      const connections = await Connection.find({
+        $or: [
+          { sender: req.user._id, status: 'accepted' },
+          { receiver: req.user._id, status: 'accepted' }
+        ]
+      }).populate('sender', 'username profile role').populate('receiver', 'username profile role');
+
+      const connectedUsers = connections.map(conn => {
+        const otherUser = conn.sender._id.toString() === req.user._id.toString() ? conn.receiver : conn.sender;
+        return {
+          user: {
+            _id: otherUser._id,
+            username: otherUser.username,
+            profile: otherUser.profile,
+            role: otherUser.role
+          },
+          lastMessage: null,
+          unreadCount: 0
+        };
+      });
+
+      // Also include admins
+      const admins = await User.find({ role: 'admin', _id: { $ne: req.user._id } }, 'username profile role');
+      const adminConversations = admins.map(admin => ({
+        user: {
+          _id: admin._id,
+          username: admin.username,
+          profile: admin.profile,
+          role: admin.role
+        },
+        lastMessage: null,
+        unreadCount: 0
+      }));
+
+      conversations = [...connectedUsers, ...adminConversations];
     } else {
-      // For instructors, show only existing conversations
-      conversations = await Message.aggregate([
-        {
-          $match: {
-            $or: [{ sender: req.user._id }, { receiver: req.user._id }]
-          }
+      // For instructors, show connected students and admins
+      const connections = await Connection.find({
+        $or: [
+          { sender: req.user._id, status: 'accepted' },
+          { receiver: req.user._id, status: 'accepted' }
+        ]
+      }).populate('sender', 'username profile role').populate('receiver', 'username profile role');
+
+      const connectedUsers = connections.map(conn => {
+        const otherUser = conn.sender._id.toString() === req.user._id.toString() ? conn.receiver : conn.sender;
+        return {
+          user: {
+            _id: otherUser._id,
+            username: otherUser.username,
+            profile: otherUser.profile,
+            role: otherUser.role
+          },
+          lastMessage: null,
+          unreadCount: 0
+        };
+      });
+
+      // Also include admins
+      const admins = await User.find({ role: 'admin', _id: { $ne: req.user._id } }, 'username profile role');
+      const adminConversations = admins.map(admin => ({
+        user: {
+          _id: admin._id,
+          username: admin.username,
+          profile: admin.profile,
+          role: admin.role
         },
-        {
-          $sort: { timestamp: -1 }
-        },
-        {
-          $group: {
-            _id: {
-              $cond: {
-                if: { $eq: ['$sender', req.user._id] },
-                then: '$receiver',
-                else: '$sender'
-              }
-            },
-            lastMessage: { $first: '$$ROOT' },
-            unreadCount: {
-              $sum: {
-                $cond: [
-                  { $and: [
-                    { $eq: ['$receiver', req.user._id] },
-                    { $eq: ['$read', false] }
-                  ]},
-                  1,
-                  0
-                ]
-              }
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user'
-          }
-        },
-        {
-          $unwind: '$user'
-        },
-        {
-          $project: {
-            user: {
-              _id: 1,
-              username: 1,
-              profile: 1,
-              role: 1
-            },
-            lastMessage: 1,
-            unreadCount: 1
-          }
-        }
-      ]);
+        lastMessage: null,
+        unreadCount: 0
+      }));
+
+      conversations = [...connectedUsers, ...adminConversations];
     }
 
     res.json({
@@ -247,6 +262,24 @@ router.delete('/:messageId', auth, checkSuspended, async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting message:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get total unread message count for current user
+router.get('/unread-count', auth, checkSuspended, async (req, res) => {
+  try {
+    const unreadCount = await Message.countDocuments({
+      receiver: req.user.id,
+      read: false
+    });
+
+    res.json({
+      success: true,
+      data: { unreadCount }
+    });
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -69,6 +69,7 @@ const StudentDashboardPage = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes } = useQuiz();
@@ -153,12 +154,26 @@ const StudentDashboardPage = () => {
     }
   }, [getUserQuizzes, getQuizStats, getAvailableQuizzes, getPendingQuizzes, getSubmittedQuizzes, fetchReceivedContent, fetchSentRequests]);
 
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/messages/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCount(response.data.data.unreadCount);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadDashboardData();
+    fetchUnreadCount();
 
     // Set up polling to refresh dashboard data every 30 seconds
     const interval = setInterval(() => {
       loadDashboardData();
+      fetchUnreadCount();
     }, 30000); // 30 seconds
 
     // Listen for quiz submission events to refresh immediately
@@ -166,13 +181,20 @@ const StudentDashboardPage = () => {
       loadDashboardData();
     };
 
+    // Listen for messages read events to refresh unread count immediately
+    const handleMessagesRead = () => {
+      fetchUnreadCount();
+    };
+
     window.addEventListener('quizSubmitted', handleQuizSubmitted);
+    window.addEventListener('messagesRead', handleMessagesRead);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('quizSubmitted', handleQuizSubmitted);
+      window.removeEventListener('messagesRead', handleMessagesRead);
     };
-  }, [loadDashboardData]);
+  }, [loadDashboardData, fetchUnreadCount]);
 
   const handleTakeQuiz = (quizId) => {
     navigate(`/quiz/${quizId}`);
@@ -270,6 +292,11 @@ const StudentDashboardPage = () => {
         </Box>
         <Typography variant="body1" color="text.secondary">
           Ready to learn? Take a quiz or review your progress.
+          {unreadCount > 0 && (
+            <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
+              You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
+            </Box>
+          )}
         </Typography>
       </Box>
 

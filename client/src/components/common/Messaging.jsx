@@ -82,6 +82,9 @@ const Messaging = () => {
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
     loadMessages(conversation.user._id);
+
+    // Dispatch custom event to notify dashboard of message read
+    window.dispatchEvent(new CustomEvent('messagesRead'));
   };
 
   const handleSendMessage = async () => {

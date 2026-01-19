@@ -61,6 +61,7 @@ import { useAuth } from '../context/AuthContext';
 import StudentSelector from '../components/common/StudentSelector';
 import ConnectionRequests from '../components/common/ConnectionRequests';
 import QuizList from '../components/quiz/QuizList';
+import Messaging from '../components/common/Messaging';
 
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
@@ -91,10 +92,23 @@ const InstructorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [allContent, setAllContent] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
 
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/messages/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCount(response.data.data.unreadCount);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, []);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -1078,6 +1092,11 @@ const InstructorDashboardPage = () => {
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Manage your quizzes, content, and track student progress.
+          {unreadCount > 0 && (
+            <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
+              You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
+            </Box>
+          )}
         </Typography>
       </Box>
 
@@ -1243,6 +1262,8 @@ const InstructorDashboardPage = () => {
           </DialogActions>
         </Dialog>
       )}
+
+      <Messaging />
     </Container>
   );
 };
