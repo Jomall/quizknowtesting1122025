@@ -388,30 +388,34 @@ const Timetable = () => {
                             </Box>
                           }
                           secondary={
-                            <Box>
-                              <Typography variant="body2">{slot.activity}</Typography>
-                              <Typography variant="caption" color="text.secondary">
+                            <span>
+                              <span style={{ fontSize: '0.875rem', lineHeight: 1.43, display: 'block' }}>{slot.activity}</span>
+                              <span style={{ fontSize: '0.75rem', color: 'rgba(0, 0, 0, 0.6)', lineHeight: 1.66, display: 'block' }}>
                                 {slot.purpose}
-                              </Typography>
-                              {slot.linkedQuiz && (
-                                <Chip
-                                  icon={<SchoolIcon />}
-                                  label={`Quiz: ${slot.linkedQuiz.title}`}
-                                  size="small"
-                                  sx={{ mt: 1, mr: 1 }}
-                                />
-                              )}
-                              {slot.linkedContent && (
-                                <Chip
-                                  icon={getContentIcon(slot.linkedContent.type)}
-                                  label={`Content: ${slot.linkedContent.title}`}
-                                  size="small"
-                                  sx={{ mt: 1 }}
-                                />
-                              )}
-                            </Box>
+                              </span>
+                            </span>
                           }
                         />
+                        {(slot.linkedQuiz || slot.linkedContent) && (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, ml: 1 }}>
+                            {slot.linkedQuiz && (
+                              <Chip
+                                icon={<SchoolIcon />}
+                                label={`Quiz: ${slot.linkedQuiz.title}`}
+                                size="small"
+                                sx={{ alignSelf: 'flex-start' }}
+                              />
+                            )}
+                            {slot.linkedContent && (
+                              <Chip
+                                icon={getContentIcon(slot.linkedContent.type)}
+                                label={`Content: ${slot.linkedContent.title}`}
+                                size="small"
+                                sx={{ alignSelf: 'flex-start' }}
+                              />
+                            )}
+                          </Box>
+                        )}
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           {slot.pomodoroEnabled && !slot.completed && (
                             <Tooltip title="Start Pomodoro">

@@ -61,6 +61,7 @@ import { useAuth } from '../context/AuthContext';
 import StudentSelector from '../components/common/StudentSelector';
 import ConnectionRequests from '../components/common/ConnectionRequests';
 import QuizList from '../components/quiz/QuizList';
+import Messaging from '../components/common/Messaging';
 import quizAPI from '../services/quizAPI';
 import axios from 'axios';
 

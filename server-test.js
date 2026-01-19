@@ -70,6 +70,7 @@ async function startServer() {
     const submissionRoutes = require('./routes/submissions');
     const connectionRoutes = require('./routes/connections');
     const contentRoutes = require('./routes/content');
+    const messageRoutes = require('./routes/messages');
 
     // Routes
     app.use('/api/auth', authRoutes);
@@ -78,6 +79,7 @@ async function startServer() {
     app.use('/api/submissions', submissionRoutes);
     app.use('/api/connections', connectionRoutes);
     app.use('/api/content', contentRoutes);
+    app.use('/api/messages', messageRoutes);
 
     // Start Express server
     const PORT = process.env.PORT || 5000;
@@ -118,8 +120,31 @@ io.on('connection', (socket) => {
     console.log(`User ${socket.id} left room ${roomId}`);
   });
 
+  socket.on('join-user-room', (userId) => {
+    socket.join(userId);
+    console.log(`User ${socket.id} joined user room ${userId}`);
+  });
+
+  socket.on('leave-user-room', (userId) => {
+    socket.leave(userId);
+    console.log(`User ${socket.id} left user room ${userId}`);
+  });
+
   socket.on('quiz-submitted', (data) => {
     socket.to(data.quizId).emit('new-submission', data);
+  });
+
+  socket.on('send-message', (data) => {
+    // Emit to receiver's room
+    socket.to(data.receiverId).emit('new-message', data.message);
+  });
+
+  socket.on('typing-start', (data) => {
+    socket.to(data.receiverId).emit('user-typing', { userId: data.senderId });
+  });
+
+  socket.on('typing-stop', (data) => {
+    socket.to(data.receiverId).emit('user-stopped-typing', { userId: data.senderId });
   });
 
   socket.on('disconnect', () => {

@@ -20,6 +20,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Fab,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -34,12 +35,14 @@ import {
   Link as LinkIcon,
   Print as PrintIcon,
   Lock as LockIcon,
+  Message as MessageIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import InstructorBrowser from '../components/common/InstructorBrowser';
 import Timetable from '../components/Timetable';
+import Messaging from '../components/common/Messaging';
 import { printQuizResults } from '../utils/printResults';
 import authService from '../services/authService';
 import axios from 'axios';
@@ -748,6 +751,8 @@ const StudentDashboardPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Messaging />
     </Container>
   );
 };

@@ -2,12 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
   email: {
     type: String,
     required: true,
@@ -17,48 +11,49 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: true
   },
   role: {
     type: String,
     enum: ['student', 'instructor', 'admin'],
-    required: true
+    default: 'student'
   },
   profile: {
     firstName: String,
     lastName: String,
     institution: String,
     phone: String,
+    whatsapp: String,
     avatar: String,
     bio: String
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   },
   isApproved: {
     type: Boolean,
     default: function() {
-      return this.role === 'student' || this.role === 'admin';
+      return this.role !== 'instructor'; // Instructors need approval, others are approved by default
     }
   },
   isSuspended: {
     type: Boolean,
     default: false
   },
+  verificationToken: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  lastLogin: Date,
+  lastSeen: Date,
+  lastLogoutTime: Date,
+  totalStudyTime: {
+    type: Number,
+    default: 0
+  },
   studentLimit: {
     type: Number,
-    default: function() {
-      return this.role === 'instructor' ? 25 : null;
-    },
-    min: 1,
-    max: 50,
-    validate: {
-      validator: function(value) {
-        if (this.role === 'instructor') {
-          return value >= 1 && value <= 50;
-        }
-        return true;
-      },
-      message: 'Student limit must be between 1 and 50 for instructors'
-    }
+    default: 25
   },
   createdAt: {
     type: Date,
@@ -67,70 +62,47 @@ const userSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  },
-  totalStudyTime: {
-    type: Number,
-    default: 0
-  },
-  lastLoginTime: {
-    type: Date,
-    default: null
-  },
-  lastLogoutTime: {
-    type: Date,
-    default: null
-  },
-  lastSeen: {
-    type: Date,
-    default: null
-  },
-  energyPatterns: {
-    preference: {
-      type: String,
-      enum: ['lark', 'owl', 'balanced'],
-      default: 'balanced'
-    },
-    peakEnergyTime: {
-      type: String,
-      match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, // HH:MM format
-      default: '08:00'
-    },
-    sleepSchedule: {
-      bedtime: {
-        type: String,
-        match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        default: '22:00'
-      },
-      wakeTime: {
-        type: String,
-        match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        default: '06:00'
-      }
-    },
-    workStyle: {
-      type: String,
-      enum: ['focused', 'flexible', 'social'],
-      default: 'focused'
-    }
   }
 });
 
-// Hash password before saving
+// Indexes
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
+
+// Pre-save middleware
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
+  this.updatedAt = Date.now();
+
+  // Hash password if modified
+  if (this.isModified('password')) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
   }
+
+  next();
+});
+
+// Virtual for full name
+userSchema.virtual('fullName').get(function() {
+  if (this.profile && this.profile.firstName && this.profile.lastName) {
+    return `${this.profile.firstName} ${this.profile.lastName}`;
+  }
+  return this.email;
 });
 
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Transform for JSON
+userSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.password;
+  delete user.resetPasswordToken;
+  delete user.resetPasswordExpires;
+  delete user.verificationToken;
+  return user;
 };
 
 module.exports = mongoose.model('User', userSchema);

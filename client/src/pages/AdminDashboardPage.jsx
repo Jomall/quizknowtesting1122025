@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Messaging from '../components/common/Messaging';
 
 const AdminDashboardPage = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -1205,6 +1206,8 @@ const AdminDashboardPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Messaging />
     </Container>
   );
 };
