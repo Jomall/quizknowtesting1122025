@@ -41,7 +41,6 @@ import {
 } from '@mui/icons-material';
 // Using native HTML date input instead of MUI date picker for compatibility
 import { useAuth } from '../context/AuthContext';
-import { useQuiz } from '../context/QuizContext';
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
