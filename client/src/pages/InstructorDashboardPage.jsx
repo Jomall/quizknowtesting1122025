@@ -92,7 +92,7 @@ const InstructorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [allContent, setAllContent] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount] = useState(0);
 
 
   const navigate = useNavigate();
