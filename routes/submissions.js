@@ -148,11 +148,21 @@ if (question.type === 'fill-in-the-blank') {
     quiz.students[studentIndex].submittedAt = new Date();
     await quiz.save();
 
-    // Auto-complete if manual review not required or grading mode is auto
-    if (!quiz.settings.requireManualReview && quiz.settings.gradingMode === 'auto') {
-      submission.isCompleted = true;
-      submission.reviewedAt = new Date();
-      await submission.save();
+    // Handle different correction methods
+    if (quiz.settings.correctionMethod === 'auto') {
+      // Auto-correction: complete immediately if no manual review required
+      if (!quiz.settings.requireManualReview && quiz.settings.gradingMode === 'auto') {
+        submission.isCompleted = true;
+        submission.reviewedAt = new Date();
+        await submission.save();
+      }
+    } else if (quiz.settings.correctionMethod === 'instructor') {
+      // Instructor correction: mark for manual review
+      submission.isCompleted = false; // Wait for instructor review
+    } else if (quiz.settings.correctionMethod === 'peer') {
+      // Peer correction: assign to other students for grading
+      submission.isCompleted = false; // Wait for peer reviews
+      await assignPeerGradingTasks(submission, quiz);
     }
 
     res.status(201).json({

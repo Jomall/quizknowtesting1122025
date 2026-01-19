@@ -264,10 +264,33 @@ const quizSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    gradingMode: {
-      type: String,
-      enum: ['auto', 'manual'],
-      default: 'auto'
+  gradingMode: {
+    type: String,
+    enum: ['auto', 'manual', 'peer'],
+    default: 'auto'
+  },
+  correctionMethod: {
+    type: String,
+    enum: ['auto', 'instructor', 'peer'],
+    default: 'auto'
+  },
+    peerGradingSettings: {
+      assignmentsPerSubmission: {
+        type: Number,
+        default: 2
+      },
+      gradingDeadline: {
+        type: Number, // days after submission
+        default: 7
+      },
+      requireConsensus: {
+        type: Boolean,
+        default: false
+      },
+      minReviewers: {
+        type: Number,
+        default: 1
+      }
     }
   },
   essayGradingSettings: {

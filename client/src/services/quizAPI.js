@@ -98,7 +98,7 @@ const quizAPI = {
   },
 
   // Global stats (public)
-  getGlobalStats: () => axios.get(`${API_BASE_URL}/users/global-stats`),
+  getGlobalStats: () => axios.get(`${API_BASE_URL}/users/global-stats`, { timeout: 10000 }),
 };
 
 export default quizAPI;

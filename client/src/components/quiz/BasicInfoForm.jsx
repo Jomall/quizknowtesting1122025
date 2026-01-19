@@ -149,6 +149,56 @@ const BasicInfoForm = ({ quizData, onChange }) => {
           helperText="Set the maximum number of retake attempts allowed (0 for unlimited)"
         />
       )}
+
+      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+        Grading Method
+      </Typography>
+
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Grading Method</InputLabel>
+        <Select
+          value={quizData.settings?.gradingMode || 'auto'}
+          onChange={(e) => handleSettingsChange('gradingMode', e.target.value)}
+        >
+          <MenuItem value="auto">Auto Grading</MenuItem>
+          <MenuItem value="manual">Instructor Manual Review</MenuItem>
+          <MenuItem value="peer">Peer Grading</MenuItem>
+        </Select>
+      </FormControl>
+
+      {(quizData.settings?.gradingMode === 'peer') && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Peer Grading Settings:
+          </Typography>
+          <TextField
+            fullWidth
+            label="Assignments per Submission"
+            type="number"
+            value={quizData.settings?.peerGradingSettings?.assignmentsPerSubmission || 2}
+            onChange={(e) => handleSettingsChange('peerGradingSettings', {
+              ...quizData.settings?.peerGradingSettings,
+              assignmentsPerSubmission: parseInt(e.target.value) || 2
+            })}
+            margin="normal"
+            inputProps={{ min: 1, max: 5 }}
+            helperText="Number of peers who will grade each submission"
+          />
+          <TextField
+            fullWidth
+            label="Grading Deadline (days)"
+            type="number"
+            value={quizData.settings?.peerGradingSettings?.gradingDeadline || 7}
+            onChange={(e) => handleSettingsChange('peerGradingSettings', {
+              ...quizData.settings?.peerGradingSettings,
+              gradingDeadline: parseInt(e.target.value) || 7
+            })}
+            margin="normal"
+            inputProps={{ min: 1, max: 30 }}
+            helperText="Days after submission for peer grading to be completed"
+          />
+        </Box>
+      )}
     </Box>
   );
 };
