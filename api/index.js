@@ -125,7 +125,14 @@ app.use(async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Database connection error:', error);
-    res.status(500).json({ message: 'Database connection failed' });
+    console.error('Error details:', error.message);
+    console.error('Environment check - VERCEL:', process.env.VERCEL);
+    console.error('Environment check - MONGODB_URI exists:', !!process.env.MONGODB_URI);
+    console.error('Environment check - MONGO_URI exists:', !!process.env.MONGO_URI);
+    res.status(500).json({
+      message: 'Database connection failed',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -174,34 +181,54 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
-    // For development, use local MongoDB first
-    const mongoUri = process.env.NODE_ENV === 'test' ? 'mongodb://localhost:27017/quizknow-test' : 'mongodb://localhost:27017/quizknow';
-    console.log('Connecting to local MongoDB at:', mongoUri);
+    // For Vercel/production, use MONGODB_URI environment variable
+    if (process.env.VERCEL || process.env.MONGODB_URI) {
+      const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+      if (!mongoUri) {
+        throw new Error('MONGODB_URI environment variable is required for production');
+      }
+      console.log('Connecting to production MongoDB');
 
-    cached.promise = mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-    }).then((mongoose) => {
-      console.log('Local MongoDB connected successfully');
-      return mongoose;
-    }).catch(async (localError) => {
-      console.log('Local MongoDB connection failed, falling back to MongoDB Memory Server:', localError.message);
-      // Fallback to MongoDB Memory Server
-      const mongoServer = await MongoMemoryServer.create();
-      const memoryUri = mongoServer.getUri();
-      console.log('Connecting to MongoDB Memory Server at:', memoryUri);
-
-      return mongoose.connect(memoryUri, {
+      cached.promise = mongoose.connect(mongoUri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
       }).then((mongoose) => {
-        console.log('MongoDB Memory Server connected successfully');
+        console.log('Production MongoDB connected successfully');
         return mongoose;
       });
-    });
+    } else {
+      // For development, use local MongoDB first
+      const mongoUri = process.env.NODE_ENV === 'test' ? 'mongodb://localhost:27017/quizknow-test' : 'mongodb://localhost:27017/quizknow';
+      console.log('Connecting to local MongoDB at:', mongoUri);
+
+      cached.promise = mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+      }).then((mongoose) => {
+        console.log('Local MongoDB connected successfully');
+        return mongoose;
+      }).catch(async (localError) => {
+        console.log('Local MongoDB connection failed, falling back to MongoDB Memory Server:', localError.message);
+        // Fallback to MongoDB Memory Server
+        const mongoServer = await MongoMemoryServer.create();
+        const memoryUri = mongoServer.getUri();
+        console.log('Connecting to MongoDB Memory Server at:', memoryUri);
+
+        return mongoose.connect(memoryUri, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        }).then((mongoose) => {
+          console.log('MongoDB Memory Server connected successfully');
+          return mongoose;
+        });
+      });
+    }
   }
 
   try {
