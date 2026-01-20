@@ -47,7 +47,7 @@ const Messaging = () => {
     if (open) {
       loadConversations();
     }
-  }, [open]);
+  }, [open, loadConversations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     scrollToBottom();
