@@ -42,6 +42,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Messaging from '../components/common/Messaging';
+import axios from 'axios';
 
 const AdminDashboardPage = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -72,11 +73,13 @@ const AdminDashboardPage = () => {
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [userToReset, setUserToReset] = useState(null);
   const [newPassword, setNewPassword] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
     loadDashboardData();
+    fetchUnreadCount();
     if (tabValue === 3) {
       loadInstructors();
     }
@@ -84,6 +87,25 @@ const AdminDashboardPage = () => {
       loadQuizzes();
     }
   }, [tabValue]);
+
+  useEffect(() => {
+    // Set up polling to refresh unread count every 30 seconds
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 30000); // 30 seconds
+
+    // Listen for messages read events to refresh unread count immediately
+    const handleMessagesRead = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('messagesRead', handleMessagesRead);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('messagesRead', handleMessagesRead);
+    };
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -567,6 +589,19 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await axios.get(`${API_BASE_URL}/messages/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCount(response.data.data.unreadCount);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4 }}>
@@ -576,6 +611,11 @@ const AdminDashboardPage = () => {
         <Typography variant="body1" color="text.secondary">
           System administration and user management dashboard.
         </Typography>
+        {unreadCount > 0 && (
+          <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
+            You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
+          </Box>
+        )}
       </Box>
 
       <Grid container spacing={3}>

@@ -41,7 +41,7 @@ router.post('/', auth, checkSuspended, async (req, res) => {
 
     // Create message
     const message = new Message({
-      sender: req.user.id,
+      sender: req.user._id,
       receiver: receiverId,
       content: content.trim()
     });
@@ -117,98 +117,47 @@ router.get('/conversation/:userId', auth, checkSuspended, async (req, res) => {
 // Get list of conversations for current user
 router.get('/conversations', auth, checkSuspended, async (req, res) => {
   try {
-    let conversations = [];
+    // For all users, show all other users (simplified approach for messaging)
+    const users = await User.find({ _id: { $ne: req.user._id } }, 'username profile role')
+      .sort({ 'profile.firstName': 1, 'profile.lastName': 1, username: 1 });
 
-    if (req.user.role === 'admin') {
-      // For admins, show all users except themselves
-      const users = await User.find({ _id: { $ne: req.user._id } }, 'username profile role')
-        .sort({ 'profile.firstName': 1, 'profile.lastName': 1, username: 1 });
+    const conversations = await Promise.all(users.map(async (user) => {
+      // Get last message and unread count for this conversation
+      const query = {
+        $or: [
+          { sender: req.user._id, receiver: user._id },
+          { sender: user._id, receiver: req.user._id }
+        ]
+      };
+      console.log(`Query for conversation with ${user.username}:`, JSON.stringify(query, null, 2));
+      const lastMessage = await Message.findOne(query)
+        .populate('sender', 'username profile.firstName profile.lastName')
+        .sort({ timestamp: -1 });
+      console.log(`Found lastMessage for ${user.username}:`, lastMessage);
 
-      conversations = users.map(user => ({
+      const unreadCount = await Message.countDocuments({
+        sender: user._id,
+        receiver: req.user._id,
+        read: false
+      });
+
+      console.log(`Conversation with ${user.username}:`);
+      console.log(`  - User ID: ${user._id}`);
+      console.log(`  - Current user ID: ${req.user._id}`);
+      console.log(`  - Last message:`, lastMessage);
+      console.log(`  - Unread count: ${unreadCount}`);
+
+      return {
         user: {
           _id: user._id,
           username: user.username,
           profile: user.profile,
           role: user.role
         },
-        lastMessage: null,
-        unreadCount: 0
-      }));
-    } else if (req.user.role === 'student') {
-      // For students, show connected instructors and admins
-      const connections = await Connection.find({
-        $or: [
-          { sender: req.user._id, status: 'accepted' },
-          { receiver: req.user._id, status: 'accepted' }
-        ]
-      }).populate('sender', 'username profile role').populate('receiver', 'username profile role');
-
-      const connectedUsers = connections.map(conn => {
-        const otherUser = conn.sender._id.toString() === req.user._id.toString() ? conn.receiver : conn.sender;
-        return {
-          user: {
-            _id: otherUser._id,
-            username: otherUser.username,
-            profile: otherUser.profile,
-            role: otherUser.role
-          },
-          lastMessage: null,
-          unreadCount: 0
-        };
-      });
-
-      // Also include admins
-      const admins = await User.find({ role: 'admin', _id: { $ne: req.user._id } }, 'username profile role');
-      const adminConversations = admins.map(admin => ({
-        user: {
-          _id: admin._id,
-          username: admin.username,
-          profile: admin.profile,
-          role: admin.role
-        },
-        lastMessage: null,
-        unreadCount: 0
-      }));
-
-      conversations = [...connectedUsers, ...adminConversations];
-    } else {
-      // For instructors, show connected students and admins
-      const connections = await Connection.find({
-        $or: [
-          { sender: req.user._id, status: 'accepted' },
-          { receiver: req.user._id, status: 'accepted' }
-        ]
-      }).populate('sender', 'username profile role').populate('receiver', 'username profile role');
-
-      const connectedUsers = connections.map(conn => {
-        const otherUser = conn.sender._id.toString() === req.user._id.toString() ? conn.receiver : conn.sender;
-        return {
-          user: {
-            _id: otherUser._id,
-            username: otherUser.username,
-            profile: otherUser.profile,
-            role: otherUser.role
-          },
-          lastMessage: null,
-          unreadCount: 0
-        };
-      });
-
-      // Also include admins
-      const admins = await User.find({ role: 'admin', _id: { $ne: req.user._id } }, 'username profile role');
-      const adminConversations = admins.map(admin => ({
-        user: {
-          _id: admin._id,
-          username: admin.username,
-          profile: admin.profile,
-          role: admin.role
-        },
-        lastMessage: null,
-        unreadCount: 0
-      }));
-
-      conversations = [...connectedUsers, ...adminConversations];
-    }
+        lastMessage,
+        unreadCount
+      };
+    }));
 
     res.json({
       success: true,
@@ -262,6 +211,30 @@ router.delete('/:messageId', auth, checkSuspended, async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting message:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete entire conversation with another user
+router.delete('/conversation/:userId', auth, checkSuspended, async (req, res) => {
+  try {
+    const otherUserId = req.params.userId;
+
+    // Delete all messages between current user and the other user
+    const result = await Message.deleteMany({
+      $or: [
+        { sender: req.user.id, receiver: otherUserId },
+        { sender: otherUserId, receiver: req.user.id }
+      ]
+    });
+
+    res.json({
+      success: true,
+      message: 'Conversation deleted successfully',
+      data: { deletedCount: result.deletedCount }
+    });
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

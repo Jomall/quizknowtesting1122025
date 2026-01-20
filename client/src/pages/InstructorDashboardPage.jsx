@@ -92,7 +92,7 @@ const InstructorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [allContent, setAllContent] = useState([]);
-  const [unreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
 
   const navigate = useNavigate();
@@ -181,12 +181,24 @@ const InstructorDashboardPage = () => {
 
   useEffect(() => {
     loadDashboardData();
+    fetchUnreadCount();
     // Set up polling to refresh dashboard data every 30 seconds
     const interval = setInterval(() => {
       loadDashboardData();
+      fetchUnreadCount();
     }, 30000); // 30 seconds
 
-    return () => clearInterval(interval);
+    // Listen for messages read events to refresh unread count immediately
+    const handleMessagesRead = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('messagesRead', handleMessagesRead);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('messagesRead', handleMessagesRead);
+    };
   }, [loadDashboardData, user]);
 
   useEffect(() => {
@@ -483,6 +495,18 @@ const InstructorDashboardPage = () => {
       setError(`Failed to assign quiz: ${error.response?.data?.message || error.message}`);
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/messages/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCount(response.data.data.unreadCount);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
     }
   };
 
@@ -1080,12 +1104,12 @@ const InstructorDashboardPage = () => {
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Manage your quizzes, content, and track student progress.
-          {unreadCount > 0 && (
-            <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
-              You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
-            </Box>
-          )}
         </Typography>
+        {unreadCount > 0 && (
+          <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
+            You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
+          </Box>
+        )}
       </Box>
 
       {error && (

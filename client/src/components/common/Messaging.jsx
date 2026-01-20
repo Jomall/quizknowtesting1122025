@@ -22,6 +22,7 @@ import {
   Message as MessageIcon,
   Close as CloseIcon,
   Chat as ChatIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -57,6 +58,15 @@ const Messaging = () => {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/messages/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Conversations loaded:', response.data.data);
+      console.log('Current user:', user);
+      response.data.data.forEach((conv, index) => {
+        console.log(`Conversation ${index}:`, {
+          user: conv.user._id,
+          lastMessage: conv.lastMessage,
+          unreadCount: conv.unreadCount
+        });
       });
       setConversations(response.data.data);
     } catch (error) {
@@ -114,6 +124,34 @@ const Messaging = () => {
     }
   };
 
+  const handleDeleteConversation = async (conversation) => {
+    if (!window.confirm(`Are you sure you want to delete the conversation with ${getDisplayName(conversation.user)}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/messages/conversation/${conversation.user._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // If the deleted conversation was selected, clear selection
+      if (selectedConversation?.user._id === conversation.user._id) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+
+      // Refresh conversations list
+      loadConversations();
+
+      // Dispatch custom event to notify dashboard of conversation deletion
+      window.dispatchEvent(new CustomEvent('messagesRead'));
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Failed to delete conversation. Please try again.');
+    }
+  };
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -151,7 +189,7 @@ const Messaging = () => {
         fullWidth
         sx={{ '& .MuiDialog-paper': { height: '80vh' } }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle component="div" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">Messages</Typography>
           <IconButton onClick={() => setOpen(false)}>
             <CloseIcon />
@@ -190,26 +228,57 @@ const Messaging = () => {
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography variant="subtitle2">
-                                {getDisplayName(conversation.user)}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {conversation.lastMessage ? formatTime(conversation.lastMessage.timestamp) : ''}
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {conversation.lastMessage ? (
+                                  <Box
+                                    sx={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: '50%',
+                                      bgcolor: conversation.lastMessage.sender._id === (user._id || user.id) ? 'green' : 'blue',
+                                    }}
+                                    title={`Last message from: ${conversation.lastMessage.sender._id === (user._id || user.id) ? 'You' : 'Them'} (${conversation.lastMessage.sender._id})`}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: '50%',
+                                      bgcolor: 'grey',
+                                    }}
+                                    title={`No messages yet - User: ${conversation.user._id}, Current: ${user._id || user.id}`}
+                                  />
+                                )}
+                                <Typography variant="subtitle2" component="span">
+                                  {getDisplayName(conversation.user)}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="caption" color="text.secondary" component="span">
+                                  {conversation.lastMessage ? formatTime(conversation.lastMessage.timestamp) : ''}
+                                </Typography>
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteConversation(conversation);
+                                  }}
+                                  sx={{
+                                    opacity: 0.6,
+                                    '&:hover': { opacity: 1, color: 'error.main' }
+                                  }}
+                                  title={`Delete conversation with ${getDisplayName(conversation.user)}`}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                             </Box>
                           }
                           secondary={
-                            <Box>
-                              <Typography variant="body2" color="text.secondary" noWrap>
-                                {conversation.lastMessage ? conversation.lastMessage.content : 'Start a conversation'}
-                              </Typography>
-                              <Chip
-                                label={conversation.user?.role || 'unknown'}
-                                size="small"
-                                color={(conversation.user?.role === 'student' ? 'primary' : conversation.user?.role === 'instructor' ? 'info' : 'secondary')}
-                                sx={{ mt: 0.5, fontSize: '0.7rem' }}
-                              />
-                            </Box>
+                            <Typography variant="body2" color="text.secondary" noWrap component="span">
+                              {conversation.lastMessage ? conversation.lastMessage.content : 'Start a conversation'}
+                            </Typography>
                           }
                         />
                       </ListItem>

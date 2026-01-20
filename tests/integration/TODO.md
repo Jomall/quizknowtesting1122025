@@ -1,29 +1,12 @@
-# Messaging System Implementation TODO
+# TODO: Add Color Indicator to Conversations List in Messaging System
 
-## Backend Messaging System
-- [ ] Create Message model (models/Message.js)
-- [ ] Create message routes (routes/messages.js)
-- [ ] Extend Socket.io in server-test.js for real-time messages
-- [ ] Update User model to add WhatsApp field
+## Tasks
+- [x] Modify the `ListItemText` primary content in the conversations list to include a small colored circle indicator next to the participant's name.
+  - Indicator color: Green if the last message was sent by the current user (`conversation.lastMessage.sender._id === user.id`), blue otherwise.
+  - Indicator only appears if `lastMessage` exists.
+  - Use Material-UI `Box` component with inline styles for the circle (e.g., 8px diameter, border-radius 50%).
 
-## Frontend Messaging UI
-- [ ] Create Messaging component (client/src/components/Messaging.jsx)
-- [ ] Update StudentDashboardPage.jsx to include messaging
-- [ ] Update InstructorDashboardPage.jsx to include messaging
-- [ ] Add message notifications
-
-## WhatsApp Integration
-- [ ] Implement WhatsApp Web links in messaging component
-- [ ] Add WhatsApp contact sharing in user profiles
-
-## Security & Privacy
-- [ ] Require mutual connection before messaging
-- [ ] Add message encryption (basic)
-- [ ] Implement message moderation
-- [ ] Add admin controls
-
-## Testing & Verification
-- [ ] Test messaging functionality end-to-end
-- [ ] Test WhatsApp link generation
-- [ ] Verify security measures
-- [ ] Test real-time message delivery
+## Progress Tracking
+- [x] Task 1: Implement the color indicator in Messaging.jsx
+- [x] Task 2: Update backend conversations API to return actual lastMessage and unreadCount data
+- [x] Testing: Verified build and linting pass without errors.

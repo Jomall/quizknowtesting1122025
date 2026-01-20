@@ -290,14 +290,16 @@ const StudentDashboardPage = () => {
             Change Password
           </Button>
         </Box>
-        <Typography variant="body1" color="text.secondary">
-          Ready to learn? Take a quiz or review your progress.
+        <Box>
+          <Typography variant="body1" color="text.secondary">
+            Ready to learn? Take a quiz or review your progress.
+          </Typography>
           {unreadCount > 0 && (
             <Box sx={{ mt: 1, p: 1, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
               You have {unreadCount} unread message{unreadCount > 1 ? 's' : ''}.
             </Box>
           )}
-        </Typography>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
