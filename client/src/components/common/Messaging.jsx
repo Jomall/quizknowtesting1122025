@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -53,7 +53,7 @@ const Messaging = () => {
     scrollToBottom();
   }, [messages]);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/messages/conversations`, {
@@ -72,7 +72,7 @@ const Messaging = () => {
     } catch (error) {
       console.error('Error loading conversations:', error);
     }
-  };
+  }, [user]);
 
   const loadMessages = async (userId) => {
     try {
