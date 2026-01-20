@@ -43,6 +43,7 @@ const Messaging = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // eslint-disable-next-line no-use-before-define
   useEffect(() => {
     if (open) {
       loadConversations();
