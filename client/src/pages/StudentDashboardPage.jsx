@@ -386,6 +386,11 @@ const StudentDashboardPage = () => {
                 {availableQuizzes.filter(quiz => quiz && quiz._id && quiz.title).length > 0 ? (
                   availableQuizzes.filter(quiz => quiz && quiz._id && quiz.title).map((quiz) => {
                     const isCompleted = completedQuizIds.has(quiz._id);
+                    // Check if quiz was assigned within the last 7 days
+                    const studentEntry = quiz.students?.find(s => s.student === user?.id || s.student?._id === user?.id);
+                    const assignedAt = studentEntry?.assignedAt ? new Date(studentEntry.assignedAt) : null;
+                    const isRecentlyReceived = assignedAt && (new Date() - assignedAt) <= (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+
                     return (
                       <React.Fragment key={quiz._id}>
                           <ListItem
@@ -410,6 +415,7 @@ const StudentDashboardPage = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 {quiz.title}
                                 {isCompleted && <Chip label="Completed" color="success" size="small" />}
+                                {isRecentlyReceived && !isCompleted && <Chip label="New" color="info" size="small" />}
                               </Box>
                             }
                             secondary={`${quiz.questions?.length || 0} questions • ${quiz.timeLimit || 'No limit'}`}
