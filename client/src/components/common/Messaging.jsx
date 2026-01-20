@@ -43,17 +43,6 @@ const Messaging = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // eslint-disable-next-line no-use-before-define
-  useEffect(() => {
-    if (open) {
-      loadConversations();
-    }
-  }, [open, loadConversations]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const loadConversations = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -74,6 +63,16 @@ const Messaging = () => {
       console.error('Error loading conversations:', error);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (open) {
+      loadConversations();
+    }
+  }, [open, loadConversations]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const loadMessages = async (userId) => {
     try {
